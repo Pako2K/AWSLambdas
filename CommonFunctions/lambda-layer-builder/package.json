@@ -1,0 +1,14 @@
+{
+  "name": "lambda-layer-builder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pako2K",
+  "license": "MIT",
+  "dependencies": {
+    "logger": "file:../logger"
+  }
+}

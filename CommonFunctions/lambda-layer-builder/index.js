@@ -1,0 +1,1 @@
+const Logger = require('logger');
