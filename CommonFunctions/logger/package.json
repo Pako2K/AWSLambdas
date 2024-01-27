@@ -1,0 +1,10 @@
+{
+    "name": "logger",
+    "type": "commonjs",
+    "version": "1.0.0",
+    "description": "Logger class to be used in Lambda functions",
+    "author": "Pako2K",
+    "license": "MIT",
+    "main": "./lib/logger.js",
+    "files": ["/lib"]
+}
