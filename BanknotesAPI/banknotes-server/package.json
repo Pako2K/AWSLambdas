@@ -1,0 +1,13 @@
+{
+    "name": "banknotes-server",
+    "type": "commonjs",
+    "version": "1.0.0",
+    "description": "Lambda function to expose the Banknotes Catalog API",
+    "author": "Pako2K",
+    "license": "MIT",
+    "dependencies": {
+        "jsonschema": "^1.4.1",
+        "logger": "file:../../CommonFunctions/logger",
+        "yamljs": "^0.3.0"
+    }
+}

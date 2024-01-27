@@ -1,0 +1,2951 @@
+openapi: 3.0.2
+info:
+  title: Banknotes API
+  description: API for the Banknotes Database.
+  version: "1.0.0"
+  contact:
+    email: admin@banknotes.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+# Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/banknotes-catalogue/banknotes-api/1.0.0
+  - description: Banknotes Catalogue and Collection Management API
+    url: https://banknotes-db/banknotes-api/1.0.0
+tags:
+  - name: Territories
+    description: Manage geographical organization of banknotes
+  - name: Currencies
+    description: Manage currency information
+  - name: Series
+    description: Manage currency series information
+  - name: Banknotes
+    description: Manage denominations information
+  - name: Variants
+    description: Manage banknote variants information
+  - name: Items
+    description: Manage banknotes in the user collection
+  - name: Miscellanea
+    description: Set of operations to retrieve static data
+
+
+paths:
+  /continents:
+    get:
+      tags:
+      - Territories
+      summary: Get list of continents.
+      description: Returns the list of defined continents, sorted alphabetically
+      operationId: continents-get
+      responses:
+        "200":
+          description: List of continents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/continent'
+        "500":
+          $ref: '#/components/responses/500'
+
+
+  /territory-types:
+    get:
+      tags:
+      - Territories
+      summary: Get territory types.
+      description: Returns a list of territory types.
+      operationId: territorytypes-get
+      responses:
+        "200":
+          description: List of territory types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/territoryType'
+        "500":
+          $ref: '#/components/responses/500'
+
+  /territory/{territoryId}:
+    get:
+      tags:
+      - Territories
+      summary: Get all the info about a territory.
+      description: Returns the info about a country or territory.
+      operationId: territoryByIdGET
+      parameters:
+      - $ref: '#/components/parameters/territoryId'
+      responses:
+        "200":
+          description: Country or territory complete info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/territory'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+                    
+
+  /territories/variants/stats:
+    get:
+      tags:
+      - Territories
+      summary: Get statistics about banknotes in catalogue for each territory.
+      description: Returns statistics for the existing banknotes in the catalogue, based on territories.
+      operationId: territoriesVariantsStatsGET
+      responses:
+        "200":
+          description: List of territories with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/territoryCatStats'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /territories/items/stats:
+    get:
+      tags:
+      - Territories
+      summary: Get statistics about banknotes in collection for each territory.
+      description: Returns statistics for the existing banknotes in the catalogue and in the user collection (the user must have an active session).
+      operationId: territoriesItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of territories with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/territoryColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+  
+          
+  /currency/{currencyId}:
+    get:
+      tags:
+      - Currencies
+      summary: Get all the info about a currency
+      description: Returns the info about a currency for the owning country. If the currency is shared, a country id can be specified via a query string parameter
+      operationId: currencyByIdGET
+      parameters:
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      responses:
+        "200":
+          description: Currency complete info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/currency'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /currencies/variants/stats:
+    get:
+      tags: 
+      - Currencies
+      summary: Get statistics about banknotes in catalogue for each currency.
+      description: Returns a list of currencies in the catalogue with their main features and statistics.
+      operationId: currenciesVariantsStatsGET
+      responses:
+        "200":
+          description: List of currencies with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/currencyCatStats'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /currencies/items/stats:
+    get:
+      tags:
+      - Currencies
+      summary: Get statistics about banknotes in collection for each currency.
+      description: Returns statistics for the existing banknotes in the catalogue and in the user collection (the user must have an active session).
+      operationId: currenciesItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of currencies with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/currencyColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+                
+
+  /series/{seriesId}/denomination:
+    put:
+      tags: 
+      - Banknotes
+      summary: Add new denomination to a series.
+      description: Inserts a new denomination for the given series. If a denomination with the same value already exists an error will be returned. <b>Only Admin users can invoke this operation.</b>
+      operationId: seriesDenominationPUT
+      parameters:
+      - $ref: '#/components/parameters/seriesId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      requestBody:
+        required: true
+        description: The denomination note object. 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/banknote'
+      responses:
+        "200":
+          description: Operation executed successfully. Denomination added to catalogue.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - id
+                properties:
+                  id:
+                    description: The id of the created denomination
+                    type: integer
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+    
+  
+  /denomination/{denominationId}:
+    put:
+      tags: 
+      - Banknotes
+      summary: Updates a denomination banknote.
+      description: Updates the features of an existing denomination. <b>Only Admin users can invoke this operation.</b>
+      operationId: denominationPUT
+      parameters:
+      - $ref: '#/components/parameters/denominationId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      requestBody:
+        required: true
+        description: The denomination banknote object. Note that the faceValue and the unitId cannot be modified.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/banknote'
+      responses:
+        "200":
+          description: Operation executed successfully. Denomination updated.
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+    
+      
+  /denominations/variants/stats:
+    get:
+      tags: 
+      - Banknotes
+      summary: Get statistics about banknotes in catalogue for each denomination.
+      description: Returns a list of denominations in the catalogue with statistics.
+      operationId: denominationsVariantsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/searchContinentId'
+      - in: query
+        name: fromYear
+        schema:
+          type: integer
+        required: false
+        description: Retrieve denominations issued in or after this year
+      - in: query
+        name: toYear
+        schema:
+          type: integer
+        required: false
+        description: Retrieve denominations issued up to this year
+      responses:
+        "200":
+          description: List of denominations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/denominationCatStats'
+        "500":
+          $ref: '#/components/responses/500'
+                
+           
+  /denominations/items/stats:
+    get:
+      tags: 
+      - Banknotes
+      summary: Get statistics about banknotes in the user collection for each denomination.
+      description: Returns a list of denominations in the catalogue with statistics including the user collection.
+      operationId: denominationsItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      - $ref: '#/components/parameters/searchContinentId'
+      - in: query
+        name: fromYear
+        schema:
+          type: integer
+        required: false
+        description: Retrieve denominations issued in or after this year
+      - in: query
+        name: toYear
+        schema:
+          type: integer
+        required: false
+        description: Retrieve denominations issued up to this year
+      responses:
+        "200":
+          description: List of denominations with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/denominationColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+          
+
+  /denomination/{denominationId}/variant:
+    put:
+      tags: 
+      - Variants
+      summary: Add new varaint of a denomination.
+      description: Inserts a new variant for the given denomination. If a variant with the same catalogueId already exists an error will be returned (400). If the variant is an overstamped one, then the catalogueId and the territory id must be provided. If the reference to the overstamped variant is not found an error will be returned (404). <b>Only Admin users can invoke this operation.</b>
+      operationId: denominationVariantPUT
+      parameters:
+      - $ref: '#/components/parameters/denominationId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      requestBody:
+        required: true
+        description: The variant note object. The variantId value in the request will be ignored. 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/variant'
+      responses:
+        "200":
+          description: Operation executed successfully. Variant added to catalogue.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - id
+                properties:
+                  id:
+                    description: The id of the created variant
+                    type: integer
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+ 
+ 
+  /variant/{variantId}:
+    get:
+      tags: 
+      - Variants
+      summary: Get a variant of a banknote.
+      description: Retrieves the features of an existing variant.
+      operationId: variantGET
+      parameters:
+      - $ref: '#/components/parameters/variantId'
+      responses:
+        "200":
+          description: The variant object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/variantExt'
+        "400":
+          $ref: '#/components/responses/400'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+    
+    put:
+      tags: 
+      - Variants
+      summary: Updates a variant of a banknote.
+      description: Updates the features of an existing variant. If a variant with the same catalogueId already exists an error will be returned (400). If the variant is an overstamped one, then the catalogueId and the territory id must be provided. If the reference to the overstamped variant is not found an error will be returned (404). <b>Only Admin users can invoke this operation.</b>
+      operationId: variantPUT
+      parameters:
+      - $ref: '#/components/parameters/variantId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      requestBody:
+        required: true
+        description: The variant object.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/variant'
+      responses:
+        "200":
+          description: Operation executed successfully. Variant updated.
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+    
+    
+  /series/{seriesId}/variants:
+    get:
+      tags:
+      - Variants
+      summary: Get all variants for a given series
+      description: Returns a summary of the different variants belonging to the given series.
+      operationId: seriesByIdVariantsGET
+      parameters:
+      - $ref: '#/components/parameters/seriesId'
+      responses:
+        "200":
+          description: List of variants for the given series ID
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:    
+                  - $ref: '#/components/schemas/denomination'
+                  - type: object
+                    required:
+                    - variants
+                    properties:
+                      variants:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/variantExt'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+                
+
+  /series/{seriesId}/items:
+    get:
+      tags: 
+      - Variants
+      summary: Get Collection items for a specific series
+      description: Retrieves the catalogue variants and collection items for the active sesion's user and the provided series
+      operationId: seriesByIdItemsGET
+      parameters:
+      - $ref: '#/components/parameters/seriesId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: Success. List of Items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:    
+                  - $ref: '#/components/schemas/denomination'
+                  - type: object
+                    required:
+                    - variants
+                    properties:
+                      variants:
+                        type: array
+                        items:
+                          allOf:
+                          - $ref: '#/components/schemas/variantExt'
+                          - type: object
+                            required:
+                            - items
+                            properties:
+                              items:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/item'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+                
+
+
+  /currency/{currencyId}/variants:
+    get:
+      tags:
+      - Variants
+      summary: Get all variants for a given currency
+      description: Returns a summary of the different variants belonging to the given currency. If the currency is shared, the country id can be specified via a query string parameter
+      operationId: currencyByIdVariantsGET
+      parameters:
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      responses:
+        "200":
+          description: List of variants for the given currency ID
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                  - type: object
+                    required:
+                    - seriesId
+                    properties:
+                      seriesId:
+                        type: integer
+                  - $ref: '#/components/schemas/denomination'
+                  - type: object
+                    required:
+                    - variants
+                    properties:
+                      variants:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/variantExt'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+                
+
+  /currency/{currencyId}/items:
+    get:
+      tags: 
+      - Variants
+      summary: Get Collection items for a specific currency
+      description: Retrieves the catalogue variants and collection items for the active sesion's user and the provided currency. If the currency is shared, the country id can be specified via a query string parameter
+      operationId: currencyByIdItemsGET
+      parameters:
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: Success. List of Items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                  - type: object
+                    required:
+                    - seriesId
+                    properties:
+                      seriesId:
+                        type: integer
+                  - $ref: '#/components/schemas/denomination'
+                  - type: object
+                    required:
+                    - variants
+                    properties:
+                      variants:
+                        type: array
+                        items:
+                          allOf:
+                          - $ref: '#/components/schemas/variantExt'
+                          - type: object
+                            required:
+                            - items
+                            properties:
+                              items:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/item'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+                
+                
+  /variants:
+    get:
+      tags: 
+      - Variants
+      summary: Get list of variants.
+      description: Returns a list of variants according to the specified search parameters. At least one search parameter must be provided. No more than 500 variants will be returned
+      operationId: variantsGET
+      parameters:
+      - $ref: '#/components/parameters/searchContinentId'
+      - $ref: '#/components/parameters/searchTerTypeIds'
+      - $ref: '#/components/parameters/searchTerStartDateFrom'
+      - $ref: '#/components/parameters/searchTerStartDateTo'
+      - $ref: '#/components/parameters/searchTerEndDateFrom'
+      - $ref: '#/components/parameters/searchTerEndDateTo'
+      - $ref: '#/components/parameters/searchCurTypeIds'
+      - $ref: '#/components/parameters/searchCurStartDateFrom'
+      - $ref: '#/components/parameters/searchCurStartDateTo'
+      - $ref: '#/components/parameters/searchCurEndDateFrom'
+      - $ref: '#/components/parameters/searchCurEndDateTo'
+      - $ref: '#/components/parameters/searchMinDenom'
+      - $ref: '#/components/parameters/searchMaxDenom'
+      - $ref: '#/components/parameters/searchIssueYearFrom'
+      - $ref: '#/components/parameters/searchIssueYearTo'
+      responses:
+        "200":
+          description: List of variants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/variantTree'
+        "400":
+          description: Invalid request. At least one query parameter must be provided.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "413":
+          description: The search has found too many results. Additional filters must be provided in the search criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /items:
+    get:
+      tags: 
+      - Variants
+      summary: Get list of variants and the grade and price of the item, if available.
+      description: Returns a list of variants with the best grade and price, if it is in the users' collection, according to the specified search parameters. At least one search parameter must be provided. No more than 500 items will be returned
+      operationId: itemsGET
+      parameters:
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      - $ref: '#/components/parameters/searchContinentId'
+      - $ref: '#/components/parameters/searchTerTypeIds'
+      - $ref: '#/components/parameters/searchTerStartDateFrom'
+      - $ref: '#/components/parameters/searchTerStartDateTo'
+      - $ref: '#/components/parameters/searchTerEndDateFrom'
+      - $ref: '#/components/parameters/searchTerEndDateTo'
+      - $ref: '#/components/parameters/searchCurTypeIds'
+      - $ref: '#/components/parameters/searchCurStartDateFrom'
+      - $ref: '#/components/parameters/searchCurStartDateTo'
+      - $ref: '#/components/parameters/searchCurEndDateFrom'
+      - $ref: '#/components/parameters/searchCurEndDateTo'
+      - $ref: '#/components/parameters/searchMinDenom'
+      - $ref: '#/components/parameters/searchMaxDenom'
+      - $ref: '#/components/parameters/searchIssueYearFrom'
+      - $ref: '#/components/parameters/searchIssueYearTo'
+      responses:
+        "200":
+          description: List of variants and items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/itemTree'
+        "400":
+          description: Invalid request. Cookie paramter is mandatory and at least one query parameter must be provided. 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          $ref: '#/components/responses/403'
+        "413":
+          description: The search has found too many results. Additional filters must be provided in the search criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /items/all:
+    get:
+      tags: 
+      - Items
+      summary: Get list of items in the collection.
+      description: Returns a list of items in the user's collection.
+      operationId: itemsAllGET
+      parameters:
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/itemsList'
+        "400":
+          description: Invalid request. Cookie paramter is mandatory. 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+
+
+  /variant/{variantId}/item:
+    post:
+      tags: 
+      - Variants
+      summary: Add a new item to the collection.
+      description: For the current session's user it adds the specified variant to the collection.
+      operationId: variantItemPost
+      parameters:
+      - $ref: '#/components/parameters/variantId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      requestBody:
+        required: true
+        description: The item Id in the provided object can have any value. It will be ignored. 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/item'
+      responses:
+        "200":
+          description: Operation executed successfully. Item added to collection.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - itemId
+                properties:
+                  itemId:
+                    description: The id of the created item
+                    type: integer
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+          
+          
+  /item:
+    put:
+      tags: 
+      - Variants
+      summary: Modifies this item in the collection.
+      description: For the current session's user it modifies the features of the specified item in the collection.
+      operationId: itemPut
+      parameters:
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/item'
+      responses:
+        "200":
+          description: Operation executed successfully
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+    
+    
+  /item/{itemId}:      
+    delete:
+      tags: 
+      - Variants
+      summary: Removes this item from the collection.
+      description: For the current session's user it deletes  the specified item from the collection.
+      operationId: itemDelete
+      parameters:
+      - $ref: '#/components/parameters/itemId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: Operation executed successfully
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+          
+          
+  /years/variants/stats:
+    get:
+      tags: 
+      - Variants
+      summary: Get statistics about banknotes in catalogue based on the year of issue.
+      description: Returns a list of issue-years for banknotes in the catalogue with statistics.
+      operationId: issueYearsVariantsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/dateType'
+      - $ref: '#/components/parameters/searchContinentId'
+      responses:
+        "200":
+          description: List of years
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/dateCatStats'
+        "500":
+          $ref: '#/components/responses/500'         
+         
+         
+  /years/items/stats:
+    get:
+      tags: 
+      - Variants
+      summary: Get statistics about banknotes in collection based on the year of issue.
+      description: Returns a list of issue-years for banknotes in the catalogue and the user collection with statistics.
+      operationId: issueYearsItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      - $ref: '#/components/parameters/dateType'
+      - $ref: '#/components/parameters/searchContinentId'
+      responses:
+        "200":
+          description: List of years
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/dateColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+          
+  
+  /territory/{territoryId}/currencies/variants/stats:
+    get:
+      tags: 
+       - Currencies
+      summary: Get statistics about banknotes in catalogue for each currency used in a specific territory.
+      description: Returns a list of currencies in the catalogue used in a specific territory, with their main features and statistics.
+      operationId: territoryByIdCurrenciesVariantsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/territoryId'  
+      responses:
+        "200":
+          description: List of currencies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/currencyByTerCatStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'  
+  
+  
+  /territory/{territoryId}/currencies/items/stats:
+    get:
+      tags: 
+      - Currencies
+      summary: Get statistics about banknotes in collection for each currency used in a territory.
+      description: Returns statistics per currency for the existing banknotes in the catalogue and in the user collection (the user must have an active session), used in a territory.
+      operationId: territoryByIdCurrenciesItemssStatsGET
+      parameters:
+      - $ref: '#/components/parameters/territoryId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of currencies with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/currencyByTerColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+
+
+  /currency/{currencyId}/series:
+    put:
+      tags: 
+      - Series
+      summary: Add new series to a currency.
+      description: Inserts a new series for the given currency. If a series with the same name already exists an error will be returned. <b>Only Admin users can invoke this operation.</b>
+      operationId: currencySeriesPUT
+      parameters:
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      requestBody:
+        required: true
+        description: The series object. 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/series'
+      responses:
+        "200":
+          description: Operation executed successfully. Series added to catalogue.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - id
+                properties:
+                  id:
+                    description: The id of the created series
+                    type: integer
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+    
+    get:
+      tags:
+      - Series
+      summary: Get summary of series for a currency
+      description: Returns the info about the different series of a currency. If the currency is shared, the country id can be specified via a query string parameter
+      operationId: currencyByIdSeriesGET
+      parameters:
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      responses:
+        "200":
+          description: Summary of the Series belonging to the specified currency ID
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/seriesSummary'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+
+
+  /series/{seriesId}:
+    put:
+      tags: 
+      - Series
+      summary: Updates a series.
+      description: Updates the features of an existing series. The name cannot be chnaged to an existing series name. The flag "isOverstamped" annot be changed if the series already contains any denomination. <b>Only Admin users can invoke this operation.</b>
+      operationId: seriesPUT
+      parameters:
+      - $ref: '#/components/parameters/seriesId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      requestBody:
+        required: true
+        description: The series object.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/series'
+      responses:
+        "200":
+          description: Operation executed successfully. Series updated.
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+        
+        
+    get:
+      tags:
+      - Series
+      summary: Get info about a specific series
+      description: Returns all the the info for a series.
+      operationId: seriesByIdGET
+      parameters:
+      - $ref: '#/components/parameters/seriesId'
+      responses:
+        "200":
+          description: Series detailed info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/seriesExt'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+
+
+  /territory/{territoryId}/series/variants/stats:
+    get:
+      tags: 
+       - Series
+      summary: Get statistics about banknotes in catalogue for each series of a specific territory.
+      description: Returns a list of series in the catalogue used in a specific territory, with their main features and statistics.
+      operationId: territoryByIdSeriesVariantsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/territoryId'  
+      responses:
+        "200":
+          description: List of series
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/seriesCatStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /territory/{territoryId}/series/items/stats:
+    get:
+      tags: 
+      - Series
+      summary: Get statistics about banknotes in collection for each series of a territory.
+      description: Returns statistics per series for the existing banknotes in the catalogue and in the user collection (the user must have an active session), used in a territory.
+      operationId: territoryByIdSeriesItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/territoryId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of series with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/seriesColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+                
+              
+  /territory/{territoryId}/denominations/variants/stats:
+    get:
+      tags: 
+       - Banknotes
+      summary: Get statistics about denominations in catalogue for a specific territory.
+      description: Returns a list of denominations in the catalogue used in a specific territory, with their statistics.
+      operationId: territoryByIdDenominationsVariantsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/territoryId'  
+      responses:
+        "200":
+          description: List of denominations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/denominationByTerCatStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /territory/{territoryId}/denominations/items/stats:
+    get:
+      tags: 
+      - Banknotes
+      summary: Get statistics about denominations in collection for a territory.
+      description: Returns statistics per denomination for the existing banknotes in the catalogue and in the user collection (the user must have an active session), used in a territory.
+      operationId: territoryByIdDenominationsItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/territoryId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of denominations with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/denominationByTerColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+                
+
+  /territory/{territoryId}/years/variants/stats:
+    get:
+      tags: 
+       - Variants
+      summary: Get statistics about issue years in catalogue for a specific territory.
+      description: Returns a list of issue years in the catalogue used in a specific territory, with their statistics.
+      operationId: territoryByIdIssueYearsVariantsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/dateType'
+      - $ref: '#/components/parameters/territoryId'  
+      responses:
+        "200":
+          description: List of issue years
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/dateByTerCatStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /territory/{territoryId}/years/items/stats:
+    get:
+      tags: 
+      - Variants
+      summary: Get statistics about issue years in collection for a territory.
+      description: Returns statistics per issue year for the existing banknotes in the catalogue and in the user collection (the user must have an active session), used in a territory.
+      operationId: territoryByIdIssueYearsItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/dateType'
+      - $ref: '#/components/parameters/territoryId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of denominations with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/dateByTerColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+
+
+  /currency/{currencyId}/series/variants/stats:
+    get:
+      tags: 
+       - Series
+      summary: Get statistics about banknotes in catalogue for each series of a specific currency.
+      description: Returns a list of series in the catalogue used in a specific currency, with their main features and statistics. If the currency is shared, the country id can be specified via a query string parameter
+      operationId: currencyByIdSeriesVariantsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      responses:
+        "200":
+          description: List of series
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/seriesByCurCatStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /currency/{currencyId}/series/items/stats:
+    get:
+      tags: 
+      - Series
+      summary: Get statistics about banknotes in collection for each series of a currency.
+      description: Returns statistics per series for the existing banknotes in the catalogue and in the user collection (the user must have an active session), used in a currency. If the currency is shared, the country id can be specified via a query string parameter
+      operationId: currencyByIdSeriesItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of series with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/seriesByCurColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+                
+
+  /currency/{currencyId}/denominations/variants/stats:
+    get:
+      tags: 
+       - Banknotes
+      summary: Get statistics about denominations in catalogue for a specific currency.
+      description: Returns a list of denominations in the catalogue used in a specific currency, with their statistics. If the currency is shared, the country id can be specified via a query string parameter
+      operationId: currencyByIdDenominationsVariantsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      responses:
+        "200":
+          description: List of denominations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/denominationByCurCatStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /currency/{currencyId}/denominations/items/stats:
+    get:
+      tags: 
+      - Banknotes
+      summary: Get statistics about denominations in collection for a currency.
+      description: Returns statistics per denomination for the existing banknotes in the catalogue and in the user collection (the user must have an active session), used in a currency. If the currency is shared, the country id can be specified via a query string parameter
+      operationId: currencyByIdDenominationsItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of denominations with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/denominationByCurColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+
+                
+  /currency/{currencyId}/years/variants/stats:
+    get:
+      tags: 
+       - Variants
+      summary: Get statistics about issue years in catalogue for a specific currency.
+      description: Returns a list of issue years in the catalogue used in a specific currency, with their statistics. If the currency is shared, the country id can be specified via a query string parameter
+      operationId: currencyByIdIssueYearsVariantsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/dateType'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      - $ref: '#/components/parameters/currencyId'  
+      responses:
+        "200":
+          description: List of issue years
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/dateByCurCatStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /currency/{currencyId}/years/items/stats:
+    get:
+      tags: 
+      - Variants
+      summary: Get statistics about issue years in collection for a currency.
+      description: Returns statistics per issue year for the existing banknotes in the catalogue and in the user collection (the user must have an active session), used in a currency. If the currency is shared, the country id can be specified via a query string parameter
+      operationId: currencyByIdIssueYearsItemsStatsGET
+      parameters:
+      - $ref: '#/components/parameters/dateType'
+      - $ref: '#/components/parameters/searchTerritoryId'
+      - $ref: '#/components/parameters/currencyId'
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      responses:
+        "200":
+          description: List of denominations with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/dateByCurColStats'
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+                
+
+  /grades:
+    get:
+      tags: 
+      - Miscellanea
+      summary: Get banknotes grades
+      description: Retrieves the standard grades used to evaluate th conservation of the banknotes
+      operationId: gradesGET
+      responses:
+        "200":
+          description: Success. 
+          content:
+            application/json:
+               schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/grade'
+        "500":
+          $ref: '#/components/responses/500'
+              
+  
+  
+  /territory/{territoryId}/issuer:
+    get:
+      tags:
+      - Miscellanea
+      summary: Get issuing entities for a specific territory
+      description: Retrieves the list of known banknotes issuing entities
+      operationId: territoryIssuerGET
+      parameters:
+      - $ref: '#/components/parameters/territoryId'
+      responses:
+        "200":
+          description: Success. 
+          content:
+            application/json:
+               schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/issuer'
+        "400":
+          $ref: '#/components/responses/400'
+        "500":
+          $ref: '#/components/responses/500'
+      
+
+
+  /issuer:
+    get:
+      tags: 
+      - Miscellanea
+      summary: Get issuing entities
+      description: Retrieves the list of known banknotes issuing entities
+      operationId: issuerGET
+      responses:
+        "200":
+          description: Success. 
+          content:
+            application/json:
+               schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/issuer'
+        "500":
+          $ref: '#/components/responses/500'
+                
+    put:
+      tags: 
+      - Miscellanea
+      summary: Insert issuing entity
+      description: Creates a new the banknotes issuing entity
+      operationId: issuerPUT
+      parameters:
+      - $ref: '#/components/parameters/cookieUsername'
+      - $ref: '#/components/parameters/cookieSessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/issuerKey'
+      responses:
+        "200":
+          description: Operation executed successfully
+          content:
+            application/json:
+               schema:
+                type: object
+                required:
+                - id
+                properties:
+                  id:
+                    type: integer
+        "400":
+          $ref: '#/components/responses/400'
+        "403":
+          $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'  
+  
+  
+  /printer:
+    get:
+      tags: 
+      - Miscellanea
+      summary: Get printing entities
+      description: Retrieves the list of known banknotes printing entities
+      operationId: printerGET
+      responses:
+        "200":
+          description: Success. 
+          content:
+            application/json:
+               schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/printer'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /material:
+    get:
+      tags: 
+      - Miscellanea
+      summary: Get materials
+      description: Retrieves the list of known materials used to print banknotes
+      operationId: materialGET
+      responses:
+        "200":
+          description: Success. 
+          content:
+            application/json:
+               schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/material'
+        "500":
+          $ref: '#/components/responses/500'
+                
+                
+components:
+  parameters:
+    territoryId:
+      in: path
+      name: territoryId
+      required: true
+      description: Id of the territory
+      schema:
+        type: integer
+    currencyId:
+      in: path
+      name: currencyId
+      required: true
+      description: Id of the currency
+      schema:
+        type: integer
+    seriesId:
+      in: path
+      name: seriesId
+      required: true
+      description: Id of the series
+      schema:
+        type: integer
+    denominationId:
+      in: path
+      name: denominationId
+      required: true
+      description: Id of the series
+      schema:
+        type: integer
+    variantId:
+      in: path
+      name: variantId
+      required: true
+      description: Id of the variant
+      schema:
+        type: integer
+    itemId:
+      in: path
+      name: itemId
+      required: true
+      description: Id of the item
+      schema:
+        type: integer
+    cookieUsername:
+      in: cookie
+      name: BOC.user.name
+      required: true
+      description: logged in user name
+      schema:
+        type: string
+    cookieSessionId:
+      in: cookie
+      name: wid
+      required: true
+      description: Session Id for the logged in user
+      schema: 
+        type: string
+    searchContinentId:
+      in: query
+      name: continentId
+      required: false
+      description: Retrieve resource from countries in this Continent
+      schema:
+        type: integer
+    searchTerritoryId:
+      in: query
+      name: territoryId
+      required: false
+      description: Retrieve resource for this specific territory
+      schema:
+        type: integer
+    searchTerTypeIds:
+      in: query
+      name: terTypeIds
+      required: false
+      description: Retrieve resource from countries of these types (list of id's separated by ",")
+      schema:
+        type: string
+    searchTerStartDateFrom:
+      in: query
+      name: terStartDateFrom
+      required: false
+      description: Retrieve resource from countries founded in or after this year
+      schema:
+        type: integer
+    searchTerStartDateTo:
+      in: query
+      name: terStartDateTo
+      required: false
+      description: Retrieve resource from countries founded in or before this year
+      schema:
+        type: integer
+    searchTerEndDateFrom:
+      in: query
+      name: terEndDateFrom
+      required: false
+      description: Retrieve resource from countries disappeared in or after this year
+      schema:
+        type: integer
+    searchTerEndDateTo:
+      in: query
+      name: terEndtDateTo
+      required: false
+      description: Retrieve resource from countries disappeared in or before this year
+      schema:
+        type: integer
+    searchTerIsExisting:
+      in: query
+      name: terIsExisting
+      required: false
+      description: Retrieve resource from countries currently existing
+      allowEmptyValue: true 
+      schema:
+        type: boolean
+    searchTerIsExtinct:
+      in: query
+      name: terIsExtinct
+      required: false
+      description: Retrieve resource from countries already extinct
+      allowEmptyValue: true 
+      schema:
+        type: boolean
+    searchTerExistingIn:
+      in: query
+      name: terExistingIn
+      required: false
+      description: Retrieve resource from countries existing in this year
+      schema:
+        type: integer
+    searchCurTypeIds:
+      in: query
+      name: curTypeIds
+      required: false
+      description: Retrieve resource from currencies of these types (list of id's separated by ",")
+      schema:
+        type: string
+    searchCurStartDateFrom:
+      in: query
+      name: curStartDateFrom
+      required: false
+      description: Retrieve resource of currencies created in or after this year
+      schema:
+        type: integer
+    searchCurStartDateTo:
+      in: query
+      name: curStartDateTo
+      required: false
+      description: Retrieve resource of currencies created in or before this year
+      schema:
+        type: integer
+    searchCurEndDateFrom:
+      in: query
+      name: curEndDateFrom
+      required: false
+      description: Retrieve resource of currencies disappeared in or after this year
+      schema:
+        type: integer
+    searchCurEndDateTo:
+      in: query
+      name: curEndDateTo
+      required: false
+      description: Retrieve resource of currencies disappeared in or before this year
+      schema:
+        type: integer
+    searchCurIsExisting:
+      in: query
+      name: terIsExisting
+      required: false
+      description: Retrieve resource from countries currently existing
+      allowEmptyValue: true 
+      schema:
+        type: boolean
+    searchCurIsExtinct:
+      in: query
+      name: terIsExtinct
+      required: false
+      description: Retrieve resource from countries already extinct
+      allowEmptyValue: true 
+      schema:
+        type: boolean
+    searchCurExistingIn:
+      in: query
+      name: terExistingIn
+      required: false
+      description: Retrieve resource from countries existing in this year
+      schema:
+        type: integer
+    searchMinDenom:
+      in: query
+      name: minDenom
+      required: false
+      description: Retrieve resource with this or high denomination
+      schema:
+        type: integer
+    searchMaxDenom:
+      in: query
+      name: maxDenom
+      required: false
+      description: Retrieve resource with this or lower denomination
+      schema:
+        type: integer
+    searchIssueYearFrom:
+      in: query
+      name: issueYearFrom
+      required: false
+      description: Retrieve resource with issue date in or after this year
+      schema:
+        type: integer
+    searchIssueYearTo:
+      in: query
+      name: issueYearTo
+      required: false
+      description: Retrieve resource with issue date in or before this year  
+      schema:
+        type: integer
+    dateType:
+      in: query
+      name: dateType
+      required: true
+      description: Specify if the issue year or the printed date is used
+      schema:
+        type: string
+        enum:
+        - "issue"
+        - "printed"
+      
+      
+  responses:
+    400:
+      description: Invalid request. A parameter is missing or not valid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/exception'
+    403:
+      description: Session id or username is not valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/exception'
+    404:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/exception'
+    500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/exception'
+
+  
+  schemas:
+    continent:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+
+    territoryTypeKey:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          
+          
+    territoryType:
+      allOf:    
+      - $ref: '#/components/schemas/territoryTypeKey'
+      - type: object
+        required:
+        - abbreviation
+        - description
+        properties:
+          abbreviation:
+            type: string
+          description:
+            type: string
+
+
+    territoryKey:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        iso3:
+          $ref: '#/components/schemas/iso3'
+        name:
+          type: string
+
+
+    territory:
+      allOf:    
+      - $ref: '#/components/schemas/territoryKey'
+      - type: object
+        required:
+        - continent
+        - territoryType
+        - officialName
+        - start
+        properties:
+          continent:
+            $ref: '#/components/schemas/continent'
+          territoryType:
+            $ref: '#/components/schemas/territoryTypeKey'
+          iso2:
+            $ref: '#/components/schemas/iso2'
+          officialName:
+            type: string
+          start:
+            type: integer
+          end:
+            type: integer
+          parent:
+           $ref: '#/components/schemas/territoryKey'
+          predecessors:
+            type: array
+            items:
+              $ref: '#/components/schemas/territoryKey'
+          successors:
+            type: array
+            items:
+             $ref: '#/components/schemas/territoryKey'
+          description:
+            type: string
+
+
+    territoryCatStats:
+      allOf:    
+      - $ref: '#/components/schemas/territoryKey'
+      - type: object
+        required:
+        - continentId
+        - territoryTypeId
+        - start
+        - numCurrencies
+        - numSeries
+        - numDenominations
+        - numNotes
+        - numVariants
+        properties:
+          continentId:
+            type: integer
+          territoryTypeId:
+            type: integer
+          start:
+            type: integer
+          end:
+            type: integer
+          numCurrencies:
+            type: integer
+          numSeries:
+            type: integer
+          numDenominations:
+            type: integer
+          numNotes:
+            type: integer
+          numVariants:
+            type: integer
+
+
+    territoryColStats:
+      allOf:    
+      - $ref: '#/components/schemas/territoryCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numCurrencies
+            - numSeries
+            - numDenominations
+            - numNotes
+            - numVariants
+            - price
+            properties:
+              numCurrencies:
+                type: integer
+              numSeries:
+                type: integer
+              numDenominations:
+                type: integer
+              numNotes:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+
+
+    currencyKey:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        iso3:
+          $ref: '#/components/schemas/iso3'
+        name:
+          type: string
+          
+          
+    currencyType:
+      type: string
+      enum:
+      - "OWNED"
+      - "SHARED"
+    
+    
+    currency:
+      allOf:    
+      - $ref: '#/components/schemas/currencyKey'
+      - type: object
+        required:
+        - currencyType
+        - territory
+        - fullName
+        - start
+        properties:
+          currencyType:
+            $ref: '#/components/schemas/currencyType'
+          territory:
+            allOf:    
+            - $ref: '#/components/schemas/territoryKey'
+            - type: object
+              required:
+              - continent
+              properties:
+                continent:
+                  $ref: '#/components/schemas/continent'
+          sharedBy:
+            type: array
+            items:
+              $ref: '#/components/schemas/territoryKey'
+          ownedBy:
+            $ref: '#/components/schemas/territoryKey'
+          namePlural:
+            type: string
+          fullName:
+            type: string
+          units:
+            type: array
+            items:
+              type: object
+              required:
+              - id
+              - name
+              - value
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                namePlural:
+                  type: string
+                value:
+                  type: number
+                abbreviation:
+                  type: string
+          start:
+            type: string
+          end:
+            type: string
+          predecessor:
+            allOf:    
+            - $ref: '#/components/schemas/currencyKey'
+            - type: object
+              required:
+              - rate
+              properties:
+                rate:
+                  type: number
+          successor:
+            allOf:    
+            - $ref: '#/components/schemas/currencyKey'
+            - type: object
+              required:
+              - rate
+              properties:
+                rate:
+                  type: number
+          description:
+            type: string
+
+
+    currencyCatStats:
+      allOf:    
+      - $ref: '#/components/schemas/currencyKey'
+      - type: object
+        required:
+        - currencyType
+        - territory
+        - start
+        - numSeries
+        - numDenominations
+        - numNotes
+        - numVariants
+        properties:
+          currencyType:
+            $ref: '#/components/schemas/currencyType'
+          territory:
+            allOf:    
+            - $ref: '#/components/schemas/territoryKey'
+            - type: object
+              required:
+              - continent
+              properties:
+                continent:
+                  $ref: '#/components/schemas/continent'
+          symbol:
+            type: string
+          start:
+            type: integer
+          end:
+            type: integer
+          numSeries:
+            type: integer
+          numDenominations:
+            type: integer
+          numNotes:
+            type: integer
+          numVariants:
+            type: integer
+
+
+    currencyColStats:
+      allOf:    
+      - $ref: '#/components/schemas/currencyCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numSeries
+            - numDenominations
+            - numNotes
+            - numVariants
+            - price
+            properties:
+              numSeries:
+                type: integer
+              numDenominations:
+                type: integer
+              numNotes:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+            
+    
+    currencyByTerCatStats:
+      allOf:    
+      - $ref: '#/components/schemas/currencyKey'
+      - type: object
+        required:
+        - currencyType
+        - isIssuer
+        - start
+        - numSeries
+        - numDenominations
+        - numNotes
+        - numVariants
+        properties:
+          currencyType:
+            $ref: '#/components/schemas/currencyType'
+          isIssuer:
+            type: integer
+          symbol:
+            type: string
+          start:
+            type: integer
+          end:
+            type: integer
+          numSeries:
+            type: integer
+          numDenominations:
+            type: integer
+          numNotes:
+            type: integer
+          numVariants:
+            type: integer
+            
+      
+    currencyByTerColStats:
+      allOf:    
+      - $ref: '#/components/schemas/currencyByTerCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numSeries
+            - numDenominations
+            - numNotes
+            - numVariants
+            - price
+            properties:
+              numSeries:
+                type: integer
+              numDenominations:
+                type: integer
+              numNotes:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+                
+                
+    denominationCatStats:
+      type: object
+      required:
+      - denomination
+      - numTerritories
+      - numCurrencies
+      - numSeries
+      - numVariants
+      properties:
+        denomination:
+          type: number
+        numTerritories:
+          type: integer
+        numCurrencies:
+          type: integer
+        numSeries:
+          type: integer
+        numVariants:
+          type: integer
+
+
+    denominationColStats:
+      allOf:    
+      - $ref: '#/components/schemas/denominationCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numTerritories
+            - numCurrencies
+            - numSeries
+            - numVariants
+            - price
+            properties:
+              numTerritories:
+                type: integer
+              numCurrencies:
+                type: integer
+              numSeries:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+
+
+    denominationByTerCatStats:
+      type: object
+      required:
+      - denomination
+      - numCurrencies
+      - numSeries
+      - numVariants
+      properties:
+        denomination:
+          type: number
+        numCurrencies:
+          type: integer
+        numSeries:
+          type: integer
+        numVariants:
+          type: integer
+
+
+    denominationByTerColStats:
+      allOf:    
+      - $ref: '#/components/schemas/denominationByTerCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numCurrencies
+            - numSeries
+            - numVariants
+            - price
+            properties:
+              numCurrencies:
+                type: integer
+              numSeries:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+
+
+    denominationByCurCatStats:
+      type: object
+      required:
+      - denomination
+      - numSeries
+      - numVariants
+      properties:
+        denomination:
+          type: number
+        numSeries:
+          type: integer
+        numVariants:
+          type: integer
+
+
+    denominationByCurColStats:
+      allOf:    
+      - $ref: '#/components/schemas/denominationByCurCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numSeries
+            - numVariants
+            - price
+            properties:
+              numSeries:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+
+
+    dateCatStats:
+      allOf:
+      - $ref: '#/components/schemas/date'
+      - type: object
+        required:
+        - numTerritories
+        - numCurrencies
+        - numSeries
+        - numDenominations
+        - numNotes
+        - numVariants
+        properties:
+          numTerritories:
+            type: integer
+          numCurrencies:
+            type: integer
+          numSeries:
+            type: integer
+          numDenominations:
+            type: integer
+          numNotes:
+            type: integer
+          numVariants:
+            type: integer
+
+    dateColStats:
+      allOf:    
+      - $ref: '#/components/schemas/dateCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numTerritories
+            - numCurrencies
+            - numSeries
+            - numDenominations
+            - numNotes
+            - numVariants
+            - price
+            properties:
+              numTerritories:
+                type: integer
+              numCurrencies:
+                type: integer
+              numSeries:
+                type: integer
+              numDenominations:
+                type: integer
+              numNotes:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+
+
+    dateByTerCatStats:
+      allOf:
+      - $ref: '#/components/schemas/date'
+      - type: object
+        required:
+        - numDenominations
+        - numVariants
+        properties:
+          numDenominations:
+            type: integer
+          numVariants:
+            type: integer
+
+    dateByTerColStats:
+      allOf:    
+      - $ref: '#/components/schemas/dateByTerCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numDenominations
+            - numVariants
+            - price
+            properties:
+              numDenominations:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+                
+        
+    dateByCurCatStats:
+      allOf:
+      - $ref: '#/components/schemas/date'
+      - type: object
+        required:
+        - date
+        - numDenominations
+        - numVariants
+        properties:
+          numDenominations:
+            type: integer
+          numVariants:
+            type: integer
+
+    dateByCurColStats:
+      allOf:    
+      - $ref: '#/components/schemas/dateByCurCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numDenominations
+            - numVariants
+            - price
+            properties:
+              numDenominations:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+                
+                
+    seriesKey:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+
+    seriesSummary:
+      allOf:    
+      - $ref: '#/components/schemas/seriesKey'
+      - type: object
+        required:
+        - start
+        properties:
+          start:
+            type: integer
+          end:
+            type: integer
+
+
+    series:
+      allOf:    
+      - $ref: '#/components/schemas/seriesSummary'
+      - type: object
+        properties:
+          isOverstamped:
+            type: boolean
+          issuerId:
+            type: integer
+          lawDate:
+            type: string
+          description:
+            type: string
+    
+
+    seriesExt:
+      allOf:    
+      - $ref: '#/components/schemas/seriesSummary'
+      - type: object
+        properties:
+          issuerId:
+            type: integer
+          issuerName:
+            type: string
+          lawDate:
+            type: string
+          description:
+            type: string
+    
+          
+    seriesCatStats:
+      allOf:    
+      - $ref: '#/components/schemas/seriesSummary'
+      - type: object
+        required:
+        - currency
+        - numDenominations
+        - numVariants
+        properties:
+          currency:
+            $ref: '#/components/schemas/currencyKey'
+          numDenominations:
+            type: integer
+          numVariants:
+            type: integer
+          
+
+    seriesColStats:
+      allOf:    
+      - $ref: '#/components/schemas/seriesCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numDenominations
+            - numVariants
+            - price
+            properties:
+              numDenominations:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+  
+
+    seriesByCurCatStats:
+      allOf:    
+      - $ref: '#/components/schemas/seriesSummary'
+      - type: object
+        required:
+        - numDenominations
+        - numVariants
+        properties:
+          numDenominations:
+            type: integer
+          numVariants:
+            type: integer
+
+    seriesByCurColStats:
+      allOf:    
+      - $ref: '#/components/schemas/seriesByCurCatStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numDenominations
+            - numVariants
+            - price
+            properties:
+              numDenominations:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+
+
+    banknote:
+      type: object
+      required:
+      - faceValue
+      - unitId
+      properties:
+        faceValue:
+          type: number
+        unitId:
+          type: integer
+        materialId:
+          type: integer
+        width:
+          type: integer
+        height:
+          type: integer
+        obverseDescription:
+          type: string
+        reverseDescription:
+          type: string
+        obverseTags:
+          type: string
+        reverseTags:
+          type: string
+        description:
+          type: string
+  
+  
+    denomination:
+      type: object
+      required:
+      - denomination
+      properties:
+        denomination:
+          type: number
+        faceValue:
+          type: number
+        unitId:
+          type: integer
+        unitValue:
+          type: number
+        unitName:
+          type: string
+        unitSymbol:
+          type: string
+        materialId:
+          type: integer
+        materialName:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        obverseDescription:
+          type: string
+        reverseDescription:
+          type: string
+        obverseTags:
+          type: string
+        reverseTags:
+          type: string
+        description:
+          type: string
+          
+          
+    variantKey:
+      type: object
+      required:
+      - variantId
+      - issueYear
+      - catalogueId
+      properties:
+        variantId:
+          type: integer
+        issueYear:
+          type: integer
+        printedDate:
+          type: string
+        catalogueId:
+          type: string
+
+    variant:
+      allOf:
+        - $ref: '#/components/schemas/variantKey'
+        - type: object
+          properties:
+            obverseColor:
+              type: string
+            reverseColor:
+              type: string
+            overstampedTerritoryId:
+              type: integer
+            overstampedCatalogueId:
+              type: string
+            printerId:
+              type: integer
+            signature:
+              type: string
+            signatureExt:
+              type: string
+            watermark:
+              type: string
+            securityThread:
+              type: string
+            securityExt:
+              type: string
+            mintage:
+              type: integer
+            notIssued:
+              type: boolean
+            isReplacement:
+              type: boolean
+            isSpecimen:
+              type: boolean
+            isError:
+              type: boolean
+            isCommemorative:
+              type: boolean
+            isNumismaticsProduct:
+              type: boolean
+            description:
+              type: string
+
+
+    variantExt:
+      allOf:
+        - $ref: '#/components/schemas/variantKey'
+        - type: object
+          properties:
+            obverseColor:
+              type: string
+            reverseColor:
+              type: string
+            overstampedTerritoryId:
+              type: integer
+            overstampedTerritoryName:
+              type: string
+            overstampedCatalogueId:
+              type: string
+            printerId:
+              type: integer
+            printerName:
+              type: string
+            signature:
+              type: string
+            signatureExt:
+              type: string
+            watermark:
+              type: string
+            securityThread:
+              type: string
+            securityExt:
+              type: string
+            mintage:
+              type: integer
+            notIssued:
+              type: boolean
+            isReplacement:
+              type: boolean
+            isSpecimen:
+              type: boolean
+            isError:
+              type: boolean
+            isCommemorative:
+              type: boolean
+            isNumismaticsProduct:
+              type: boolean
+            description:
+              type: string
+
+
+    variantTree:
+      allOf:    
+        - $ref: '#/components/schemas/variantKey'
+        - type: object
+          required:
+          - seriesId
+          - seriesName
+          - currencyId
+          - currencyName
+          - territoryId
+          - territoryName
+          properties:
+            notIssued:
+              type: boolean
+            seriesId:
+              type: integer
+            seriesName:
+              type: string
+            issuer:
+              type: string
+            currencyId:
+              type: integer
+            currencyName:
+              type: string
+            territoryId:
+              type: integer
+            territoryName:
+              type: string
+            printer:
+              type: string
+            width:
+              type: integer
+            height:
+              type: integer
+            mintage:
+              type: integer
+            description:
+              type: string
+   
+   
+    itemKey:
+      type: object
+      required:
+      - id
+      - grade
+      - price
+      properties:
+        id:
+          type: integer
+        grade:
+          type: string
+        price:
+          type: number
+
+
+    itemTree: 
+      allOf:    
+        - $ref: '#/components/schemas/variantTree'
+        - type: object
+          properties:
+            item:
+              $ref: '#/components/schemas/itemKey'
+        
+
+    item:
+      allOf:    
+        - $ref: '#/components/schemas/itemKey'
+        - type: object
+          required:
+          - quantity
+          properties:
+            quantity:
+              type: integer
+            seller:
+              type: string
+            purchaseDate:
+              type: string
+            description:
+              type: string
+          
+
+    itemsList:
+      type: array
+      items:
+        allOf:
+          - type: object
+            required:
+            - catalogueId
+            - continentId
+            - territoryId
+            - territoryName
+            - currencyId
+            - currencyName
+            - seriesId
+            - denomination
+            - isDuplicated
+            properties:
+              continentId:
+                type: integer
+              territoryId:
+                type: integer
+              territoryName:
+                type: string
+              currencyId:
+                type: integer
+              currencyName:
+                type: string
+              seriesId:
+                type: integer
+              catalogueId:
+                type: string
+              denomination:
+                type: number
+              isDuplicated:
+                type: boolean
+          - $ref: '#/components/schemas/item'
+
+
+    grade:
+      type: object
+      required:
+      - value
+      - grade
+      - name
+      - description
+      properties:
+        value:
+          type: integer
+        grade:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          
+
+    issuerKey:
+      type: object
+      required:
+      - name
+      - territoryId
+      properties:
+        name:
+          type: string
+        territoryId:
+          type: integer
+
+
+    issuer:
+      type: object
+      required:
+      - id
+      - name
+      - territoryId
+      - territoryName
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        territoryId:
+          type: integer
+        territoryName:
+          type: string
+
+    printer:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+          
+
+    material:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+
+          
+    iso2:
+      type: string
+      maxLength: 2
+      minLength: 2
+
+
+    iso3:
+      type: string
+      maxLength: 3
+      minLength: 3
+    
+
+    date:
+      oneOf:
+      - type: object
+        properties:
+          issueYear:
+            type: integer
+      - type: object
+        properties:
+          printedDate:
+            type: string
+
+
+    exception:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string

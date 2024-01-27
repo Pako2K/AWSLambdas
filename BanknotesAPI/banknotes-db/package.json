@@ -1,0 +1,12 @@
+{
+    "name": "banknotes-db",
+    "type": "module",
+    "version": "1.0.0",
+    "description": "Lambda function to access the Banknotes Catalog DB",
+    "author": "Pako2K",
+    "license": "MIT",
+    "dependencies": {
+        "logger": "file:../../CommonFunctions/logger",
+        "pg": "^8.11.3"
+    }
+}

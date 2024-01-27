@@ -1,0 +1,1 @@
+aws lambda update-function-code --function-name banknotes-continent-get --zip-file fileb://../target/banknotes-continent-get.zip >nul

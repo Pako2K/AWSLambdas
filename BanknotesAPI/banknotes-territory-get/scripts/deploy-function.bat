@@ -1,0 +1,1 @@
+aws lambda update-function-code --function-name banknotes-territory-get --zip-file fileb://../target/banknotes-territory-get.zip >nul
