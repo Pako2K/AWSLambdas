@@ -6,10 +6,17 @@ const tests = [{
         statusCode: 200,
         body: [{
                 "id": 1,
+                "iso3": "AFG",
                 "name": "Afghanistan",
                 "continentId": 5,
                 "territoryTypeId": 3,
+                "iso2": "AF",
+                "officialName": "Afggggg",
                 "start": 1919,
+                "end": 2034,
+                "parentId": 213,
+                "succesors": [{ "id": 214 }, { "id": 215 }],
+                "description": "desc",
                 "uri": "https://host/territory/1"
             },
             {
@@ -18,17 +25,19 @@ const tests = [{
                 "name": "Albania",
                 "continentId": 6,
                 "territoryTypeId": 3,
+                "officialName": "Afggggg",
                 "start": 1912,
+                "succesors": [{ "id": 214 }],
                 "uri": "https://host/territory/2"
             },
             {
                 "id": 3,
                 "iso3": "DZA",
                 "name": "Algeria",
-                "continentId": 4,
-                "territoryTypeId": 3,
-                "start": 1962,
-                "end": 2099,
+                "continentId": 2,
+                "territoryTypeId": 1,
+                "officialName": "Afggggg",
+                "start": 1912,
                 "uri": "https://host/territory/3"
             }
         ]

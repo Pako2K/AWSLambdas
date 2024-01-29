@@ -7,7 +7,8 @@ const { Logger } = require('logger');
 const lambdaClient = new LambdaClient();
 
 const sql = `SELECT ter_id as id, ter_iso3 as iso3, ter_name as name, ter_con_id as "continentId", 
-                    ter_tty_id as "territoryTypeId", ter_start as start, ter_end as end
+                    ter_tty_id as "territoryTypeId", ter_iso2 as iso2, ter_official_name as "officialName", ter_start as start, ter_end as end,
+                    ter_parent_country_id as "parentId", ter_successor_id as succesors, ter_description as description
             FROM ter_territory
             ORDER BY ter_name`;
 
@@ -54,7 +55,18 @@ exports.handler = async function(event) {
         for (let ter of body) {
             ter.uri = `https://${event.domainName}/territory/${ter.id}`
             if (ter.iso3 == null) delete ter.iso3
+            if (ter.iso2 == null) delete ter.iso2
             if (ter.end == null) delete ter.end
+            if (ter.parentId == null) delete ter.parentId
+            if (ter.succesors == null) delete ter.succesors
+            else {
+                let succesors = ter.succesors.split(',')
+                let sucArray = []
+                for (let id of succesors)
+                    sucArray.push({ "id": parseInt(id) })
+                ter.succesors = sucArray
+            }
+            if (ter.description == null) delete ter.description
         }
     }
 

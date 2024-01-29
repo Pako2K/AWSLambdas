@@ -86,7 +86,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/territorySummary'
+                  $ref: '#/components/schemas/territory'
         "500":
           $ref: '#/components/responses/500'
 
@@ -96,7 +96,7 @@ paths:
       - Territories
       summary: Get all the info about a territory.
       description: Returns the info about a country or territory.
-      operationId: territoryByIdGET
+      operationId: territorybyid-get
       parameters:
       - $ref: '#/components/parameters/territoryId'
       responses:
@@ -158,7 +158,25 @@ paths:
         "500":
           $ref: '#/components/responses/500'
   
-          
+  /currency:
+    get:
+      tags:
+      - Currencies
+      summary: Get list of currencies basic data.
+      description: Returns the list of currencies, sorted alphabetically
+      operationId: currency-get
+      responses:
+        "200":
+          description: List of currencies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/currencySummary'
+        "500":
+          $ref: '#/components/responses/500'
+
   /currency/{currencyId}:
     get:
       tags:
@@ -1854,7 +1872,7 @@ components:
           type: string
 
 
-    territorySummary:
+    territory:
       allOf:    
       - $ref: '#/components/schemas/territoryKey'
       - type: object
@@ -1862,35 +1880,13 @@ components:
         - uri
         - continentId
         - territoryTypeId
+        - officialName
         - start
         properties:
           continentId:
             type: integer
           territoryTypeId:
             type: integer
-          start:
-            type: integer
-          end:
-            type: integer
-          uri:
-            type: string
-            format: uri
-
-
-    territory:
-      allOf:    
-      - $ref: '#/components/schemas/territoryKey'
-      - type: object
-        required:
-        - continent
-        - territoryType
-        - officialName
-        - start
-        properties:
-          continent:
-            $ref: '#/components/schemas/continent'
-          territoryType:
-            $ref: '#/components/schemas/territoryTypeKey'
           iso2:
             $ref: '#/components/schemas/iso2'
           officialName:
@@ -1899,23 +1895,22 @@ components:
             type: integer
           end:
             type: integer
-          parent:
-           $ref: '#/components/schemas/territoryKey'
-          predecessors:
-            type: array
-            items:
-              $ref: '#/components/schemas/territoryKey'
+          parentId:
+            type: integer
           successors:
             type: array
             items:
-             $ref: '#/components/schemas/territoryKey'
+              type: object
+              required:
+              - id
+              properties:
+                id:
+                  type: integer
           description:
             type: string
-          wiki:
+          uri:
             type: string
             format: uri
-
-
 
     territoryCatStats:
       allOf:    
@@ -2002,7 +1997,30 @@ components:
       - "OWNED"
       - "SHARED"
     
-    
+
+    currencySummary:
+      allOf:    
+      - $ref: '#/components/schemas/currencyKey'
+      - type: object
+        required:
+        - territory
+        - start
+        properties:
+          territory:
+            allOf:    
+            - $ref: '#/components/schemas/territoryKey'
+            - type: object
+              required:
+              - continent
+              properties:
+                continent:
+                  $ref: '#/components/schemas/continent'
+          start:
+            type: string
+          end:
+            type: string
+
+
     currency:
       allOf:    
       - $ref: '#/components/schemas/currencyKey'
