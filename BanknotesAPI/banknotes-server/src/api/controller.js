@@ -14,7 +14,7 @@ exports.execAPI = async function(event) {
 
     // Excecute operation
     try {
-        const result = await route(operationId, event.headers["x-correlation-id"], event.requestContext.domainName);
+        const result = await route(operationId, event.headers["x-correlation-id"], event.requestContext.domainName, event.queryStringParameters);
         if (!result.body)
             throw { code: 5002, message: `Internal error. ${JSON.stringify(result)}.` }
         const validation = VALIDATOR.validate(result.body, responseSchema);

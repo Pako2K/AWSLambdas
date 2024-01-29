@@ -78,6 +78,13 @@ paths:
       summary: Get list of territories basic data.
       description: Returns the list of territories, sorted alphabetically
       operationId: territory-get
+      parameters:
+      - in: query
+        name: id
+        required: false
+        description: Retrieve only the territory for this id
+        schema:
+          type: integer
       responses:
         "200":
           description: List of territories
@@ -90,27 +97,6 @@ paths:
         "500":
           $ref: '#/components/responses/500'
 
-  /territory/{territoryId}:
-    get:
-      tags:
-      - Territories
-      summary: Get all the info about a territory.
-      description: Returns the info about a country or territory.
-      operationId: territorybyid-get
-      parameters:
-      - $ref: '#/components/parameters/territoryId'
-      responses:
-        "200":
-          description: Country or territory complete info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/territory'
-        "400":
-          $ref: '#/components/responses/400'
-        "500":
-          $ref: '#/components/responses/500'
-                    
 
   /territories/variants/stats:
     get:

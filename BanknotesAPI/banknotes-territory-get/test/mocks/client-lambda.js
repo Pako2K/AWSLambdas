@@ -16,7 +16,7 @@ class LambdaClient {
                     "start": 1919,
                     "end": 2034,
                     "parentId": 213,
-                    "succesors": "214,215",
+                    "successors": "214,215",
                     "description": "desc"
                 },
                 {
@@ -30,7 +30,7 @@ class LambdaClient {
                     "start": 1912,
                     "end": null,
                     "parentId": null,
-                    "succesors": "214",
+                    "successors": "214",
                     "description": null
                 },
                 {
@@ -44,7 +44,7 @@ class LambdaClient {
                     "start": 1912,
                     "end": null,
                     "parentId": null,
-                    "succesors": null,
+                    "successors": null,
                     "description": null
                 }
             ]

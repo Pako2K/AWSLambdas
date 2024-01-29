@@ -8,24 +8,31 @@ const lambdaClient = new LambdaClient();
 
 const sql = `SELECT ter_id as id, ter_iso3 as iso3, ter_name as name, ter_con_id as "continentId", 
                     ter_tty_id as "territoryTypeId", ter_iso2 as iso2, ter_official_name as "officialName", ter_start as start, ter_end as end,
-                    ter_parent_country_id as "parentId", ter_successor_id as succesors, ter_description as description
-            FROM ter_territory
-            ORDER BY ter_name`;
+                    ter_parent_country_id as "parentId", ter_successor_id as successors, ter_description as description
+            FROM ter_territory`;
 
 /* 
     Expected event:
     - correlationId : for logging
     - key           : main id in message, for logging
+    - domainName    : URL domain name
+    - queryStrParams: optional query string parameters
 */
 exports.handler = async function(event) {
     const log = new Logger("Territory-Get", event.correlationId, event.key);
 
-    log.info(`Request received`);
+    log.info(`Request received. Query String: ${JSON.stringify(event.queryStrParams)} `);
+
+    let finalSql
+    if (event.queryStrParams != undefined && event.queryStrParams.id != undefined)
+        finalSql = sql + ` WHERE ter_id = ${event.queryStrParams.id}`;
+    else
+        finalSql = sql + ` ORDER BY ter_name`;
 
     const commandParams = {
         FunctionName: "banknotes-db",
         InvocationType: "RequestResponse",
-        Payload: JSON.stringify({ sql: sql, correlationId: event.correlationId, key: event.key })
+        Payload: JSON.stringify({ sql: finalSql, correlationId: event.correlationId, key: event.key })
     };
 
     let status, body;
@@ -43,7 +50,7 @@ exports.handler = async function(event) {
         const respJSON = JSON.parse(respStr);
 
         status = respJSON.statusCode == undefined ? 500 : respJSON.statusCode;
-        body = respJSON.body == undefined ? respStr : respJSON.body;
+        body = respJSON.body;
     } catch (err) {
         log.error(`Error: ${err}`);
         status = 500;
@@ -52,21 +59,24 @@ exports.handler = async function(event) {
 
     // Add URI and remove optional fields
     if (status == 200) {
-        for (let ter of body) {
-            ter.uri = `https://${event.domainName}/territory/${ter.id}`
-            if (ter.iso3 == null) delete ter.iso3
-            if (ter.iso2 == null) delete ter.iso2
-            if (ter.end == null) delete ter.end
-            if (ter.parentId == null) delete ter.parentId
-            if (ter.succesors == null) delete ter.succesors
+        if (body == null) body = []
+        if (!Array.isArray(body)) body = [body]
+
+        for (let territory of body) {
+            territory.uri = `https://${event.domainName}/territory?id=${territory.id}`;
+            if (territory.iso3 == null) delete territory.iso3;
+            if (territory.iso2 == null) delete territory.iso2;
+            if (territory.end == null) delete territory.end;
+            if (territory.parentId == null) delete territory.parentId;
+            if (territory.successors == null) delete territory.successors;
             else {
-                let succesors = ter.succesors.split(',')
-                let sucArray = []
-                for (let id of succesors)
-                    sucArray.push({ "id": parseInt(id) })
-                ter.succesors = sucArray
+                let successors = territory.successors.split(',');
+                let sucArray = [];
+                for (let id of successors)
+                    sucArray.push({ "id": parseInt(id) });
+                territory.successors = sucArray;
             }
-            if (ter.description == null) delete ter.description
+            if (territory.description == null) delete territory.description;
         }
     }
 
