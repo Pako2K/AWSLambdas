@@ -9,7 +9,8 @@ const lambdaClient = new LambdaClient();
 const sql = `SELECT ter_id as id, ter_iso3 as iso3, ter_name as name, ter_con_id as "continentId", 
                     ter_tty_id as "territoryTypeId", ter_iso2 as iso2, ter_official_name as "officialName", ter_start as start, ter_end as end,
                     ter_parent_country_id as "parentId", ter_successor_id as successors, ter_description as description
-            FROM ter_territory`;
+            FROM ter_territory
+            `;
 
 /* 
     Expected event:
@@ -23,7 +24,7 @@ exports.handler = async function(event) {
 
     log.info(`Request received. Query String: ${JSON.stringify(event.queryStrParams)} `);
 
-    let finalSql
+    let finalSql;
     if (event.queryStrParams != undefined && event.queryStrParams.id != undefined)
         finalSql = sql + ` WHERE ter_id = ${event.queryStrParams.id}`;
     else
@@ -59,8 +60,8 @@ exports.handler = async function(event) {
 
     // Add URI and remove optional fields
     if (status == 200) {
-        if (body == null) body = []
-        if (!Array.isArray(body)) body = [body]
+        if (body == null) body = [];
+        if (!Array.isArray(body)) body = [body];
 
         for (let territory of body) {
             territory.uri = `https://${event.domainName}/territory?id=${territory.id}`;

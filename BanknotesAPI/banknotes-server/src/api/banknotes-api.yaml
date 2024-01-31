@@ -148,9 +148,16 @@ paths:
     get:
       tags:
       - Currencies
-      summary: Get list of currencies basic data.
+      summary: Get list of currencies.
       description: Returns the list of currencies, sorted alphabetically
       operationId: currency-get
+      parameters:
+      - in: query
+        name: id
+        required: false
+        description: Retrieve only the currency with this id
+        schema:
+          type: integer
       responses:
         "200":
           description: List of currencies
@@ -159,33 +166,11 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/currencySummary'
+                  $ref: '#/components/schemas/currency'
         "500":
           $ref: '#/components/responses/500'
 
-  /currency/{currencyId}:
-    get:
-      tags:
-      - Currencies
-      summary: Get all the info about a currency
-      description: Returns the info about a currency for the owning country. If the currency is shared, a country id can be specified via a query string parameter
-      operationId: currencyByIdGET
-      parameters:
-      - $ref: '#/components/parameters/currencyId'
-      - $ref: '#/components/parameters/searchTerritoryId'
-      responses:
-        "200":
-          description: Currency complete info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/currency'
-        "400":
-          $ref: '#/components/responses/400'
-        "500":
-          $ref: '#/components/responses/500'
-  
-  
+
   /currencies/variants/stats:
     get:
       tags: 
@@ -1898,6 +1883,121 @@ components:
             type: string
             format: uri
 
+
+    currencyKey:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        iso3:
+          $ref: '#/components/schemas/iso3'
+        name:
+          type: string
+
+
+    currency:
+      allOf:    
+      - $ref: '#/components/schemas/currencyKey'
+      - type: object
+        required:
+        - continentId
+        - fullName
+        - start
+        - ownedBy
+        properties:
+          continentId:
+            type: integer
+          namePlural:
+            type: string
+          fullName:
+            type: string
+          symbol:
+            type: string
+          start:
+            type: string
+          end:
+            type: string
+          ownedBy:
+            type: array
+            minItems: 1
+            items:
+              type: object
+              required:
+              - id
+              - start
+              properties:
+                id:
+                  type: integer
+                start:
+                  type: string
+                end:
+                  type: string
+          sharedBy:
+            type: array
+            items:
+              type: object
+              required:
+              - id
+              - start
+              properties:
+                id:
+                  type: integer
+                start:
+                  type: string
+                end:
+                  type: string
+          usedBy:
+            type: array
+            items:
+              type: object
+              required:
+              - id
+              - start
+              properties:
+                id:
+                  type: integer
+                start:
+                  type: string
+                end:
+                  type: string
+          successor:
+            type: object
+            required:
+            - id
+            properties:
+              id:
+                type: integer
+              rate:
+                type: number
+          units:
+            type: array
+            items:
+              type: object
+              required:
+              - id
+              - name
+              - value
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                namePlural:
+                  type: string
+                value:
+                  type: number
+                abbreviation:
+                  type: string
+          description:
+            type: string
+          uri:
+            type: string
+            format: uri
+
+
     territoryCatStats:
       allOf:    
       - $ref: '#/components/schemas/territoryKey'
@@ -1963,125 +2063,15 @@ components:
                 type: number
 
 
-    currencyKey:
-      type: object
-      required:
-      - id
-      - name
-      properties:
-        id:
-          type: integer
-        iso3:
-          $ref: '#/components/schemas/iso3'
-        name:
-          type: string
-          
+    
           
     currencyType:
       type: string
       enum:
       - "OWNED"
       - "SHARED"
+
     
-
-    currencySummary:
-      allOf:    
-      - $ref: '#/components/schemas/currencyKey'
-      - type: object
-        required:
-        - territory
-        - start
-        properties:
-          territory:
-            allOf:    
-            - $ref: '#/components/schemas/territoryKey'
-            - type: object
-              required:
-              - continent
-              properties:
-                continent:
-                  $ref: '#/components/schemas/continent'
-          start:
-            type: string
-          end:
-            type: string
-
-
-    currency:
-      allOf:    
-      - $ref: '#/components/schemas/currencyKey'
-      - type: object
-        required:
-        - currencyType
-        - territory
-        - fullName
-        - start
-        properties:
-          currencyType:
-            $ref: '#/components/schemas/currencyType'
-          territory:
-            allOf:    
-            - $ref: '#/components/schemas/territoryKey'
-            - type: object
-              required:
-              - continent
-              properties:
-                continent:
-                  $ref: '#/components/schemas/continent'
-          sharedBy:
-            type: array
-            items:
-              $ref: '#/components/schemas/territoryKey'
-          ownedBy:
-            $ref: '#/components/schemas/territoryKey'
-          namePlural:
-            type: string
-          fullName:
-            type: string
-          units:
-            type: array
-            items:
-              type: object
-              required:
-              - id
-              - name
-              - value
-              properties:
-                id:
-                  type: integer
-                name:
-                  type: string
-                namePlural:
-                  type: string
-                value:
-                  type: number
-                abbreviation:
-                  type: string
-          start:
-            type: string
-          end:
-            type: string
-          predecessor:
-            allOf:    
-            - $ref: '#/components/schemas/currencyKey'
-            - type: object
-              required:
-              - rate
-              properties:
-                rate:
-                  type: number
-          successor:
-            allOf:    
-            - $ref: '#/components/schemas/currencyKey'
-            - type: object
-              required:
-              - rate
-              properties:
-                rate:
-                  type: number
-          description:
-            type: string
-
 
     currencyCatStats:
       allOf:    
