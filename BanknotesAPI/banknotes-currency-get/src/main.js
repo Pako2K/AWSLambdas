@@ -67,28 +67,34 @@ exports.handler = async function(event) {
         if (body == null) body = [];
         if (!Array.isArray(body)) body = [body];
 
-        let respBody = []
-            // Insert first element
+        let respBody = [];
+        // Insert first element
         if (body.length >= 1) {
-            let cur = mapNewCurrency(body[0])
+            let cur = mapNewCurrency(body[0]);
             cur.uri = `https://${event.domainName}/currency?id=${body[0].cur_id}`;
-            respBody.push(cur)
+            respBody.push(cur);
         }
 
-        let prevRecord = body[0]
+        let prevRecord = body[0];
         for (let i = 1; i < body.length; i++) {
-            let record = body[i]
+            let record = body[i];
             if (record.cur_id == prevRecord.cur_id) {
-                updateCurrency(respBody[respBody.length - 1], prevRecord, record)
+                updateCurrency(respBody[respBody.length - 1], prevRecord, record);
             } else {
-                let cur = mapNewCurrency(record)
+                let cur = mapNewCurrency(record);
                 cur.uri = `https://${event.domainName}/currency?id=${record.cur_id}`;
-                respBody.push(cur)
+                respBody.push(cur);
             }
 
-            prevRecord = record
+            prevRecord = record;
         }
-        body = respBody
+        body = respBody.sort(function(a, b) {
+            let x = a.name.toLowerCase();
+            let y = b.name.toLowerCase();
+            if (x < y) return -1;
+            if (x > y) return 1;
+            return 0;
+        })
     }
 
     const response = {
