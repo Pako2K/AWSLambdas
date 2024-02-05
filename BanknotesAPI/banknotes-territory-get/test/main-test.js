@@ -9,8 +9,6 @@ const tests = [{
                     "id": 1,
                     "iso3": "AFG",
                     "name": "Afghanistan",
-                    "continentId": 5,
-                    "territoryTypeId": 3,
                     "iso2": "AF",
                     "officialName": "Afggggg",
                     "start": 1919,
@@ -18,28 +16,30 @@ const tests = [{
                     "parentId": 213,
                     "successors": [{ "id": 214 }, { "id": 215 }],
                     "description": "desc",
-                    "uri": "https://host/territory?id=1"
+                    "uri": "https://host/territory?id=1",
+                    "continent": { "id": 5, "name": "Asia" },
+                    "territoryType": { "id": 3, "name": "Independent State" }
                 },
                 {
                     "id": 2,
                     "iso3": "ALB",
                     "name": "Albania",
-                    "continentId": 6,
-                    "territoryTypeId": 3,
                     "officialName": "Afggggg",
                     "start": 1912,
                     "successors": [{ "id": 214 }],
-                    "uri": "https://host/territory?id=2"
+                    "uri": "https://host/territory?id=2",
+                    "continent": { "id": 6, "name": "Europa" },
+                    "territoryType": { "id": 3, "name": "Independent State" }
                 },
                 {
                     "id": 3,
                     "iso3": "DZA",
                     "name": "Algeria",
-                    "continentId": 2,
-                    "territoryTypeId": 1,
                     "officialName": "Afggggg",
                     "start": 1912,
-                    "uri": "https://host/territory?id=3"
+                    "uri": "https://host/territory?id=3",
+                    "continent": { "id": 2, "name": "Africa" },
+                    "territoryType": { "id": 1, "name": "Territory" }
                 }
             ]
         },

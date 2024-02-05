@@ -6,10 +6,12 @@ const { Logger } = require('logger');
 
 const lambdaClient = new LambdaClient();
 
-const sql = `SELECT ter_id as id, ter_iso3 as iso3, ter_name as name, ter_con_id as "continentId", 
-                    ter_tty_id as "territoryTypeId", ter_iso2 as iso2, ter_official_name as "officialName", ter_start as start, ter_end as end,
-                    ter_parent_country_id as "parentId", ter_successor_id as successors, ter_description as description
-            FROM ter_territory
+const sql = `SELECT TER.ter_id as id, TER.ter_name as name, TER.ter_con_id as "continentId", CON.con_name as "continentName", 
+                TER.ter_tty_id as "territoryTypeId", TTY.tty_name as "territoryTypeName", TER.ter_iso2 as iso2, 
+                TER.ter_iso3 as iso3, TER.ter_official_name as "officialName", TER.ter_start as start, TER.ter_end as end,
+                TER.ter_parent_country_id as "parentId", TER.ter_successor_id as successors, TER.ter_description as description
+            FROM ter_territory TER, con_continent CON, tty_territory_type TTY
+            WHERE CON.con_id = TER.ter_con_id AND TTY.tty_id = TER.ter_tty_id
             `;
 
 /* 
@@ -65,6 +67,12 @@ exports.handler = async function(event) {
 
         for (let territory of body) {
             territory.uri = `https://${event.domainName}/territory?id=${territory.id}`;
+            territory.continent = { "id": territory.continentId, "name": territory.continentName };
+            delete territory.continentId;
+            delete territory.continentName;
+            territory.territoryType = { "id": territory.territoryTypeId, "name": territory.territoryTypeName };
+            delete territory.territoryTypeId;
+            delete territory.territoryTypeName;
             if (territory.iso3 == null) delete territory.iso3;
             if (territory.iso2 == null) delete territory.iso2;
             if (territory.end == null) delete territory.end;

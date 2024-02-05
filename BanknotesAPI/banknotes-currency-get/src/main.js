@@ -6,13 +6,13 @@ const { Logger } = require('logger');
 
 const lambdaClient = new LambdaClient();
 
-const sql = `SELECT CUR.*, TEC.*, CUS.*, TER.ter_con_id
+const sql = `SELECT CUR.*, TEC.*, CUS.*, TER.ter_name, TER.ter_con_id, CON.con_name
             FROM cur_currency CUR
             INNER JOIN tec_territory_currency TEC ON TEC.tec_cur_id = CUR.cur_id 
             INNER JOIN ter_territory TER ON TEC.tec_ter_id = TER.ter_id
+            INNER JOIN con_continent CON ON TER.ter_con_id = CON.con_id
             LEFT JOIN cus_currency_unit CUS ON CUR.cur_id = CUS.cus_cur_id
             `;
-
 
 /* 
     Expected event:
@@ -114,7 +114,9 @@ function mapNewCurrency(item) {
     if (item.tec_iso3 != null)
         record.iso3 = item.tec_iso3;
     record.name = item.cur_name;
-    record.continentId = item.ter_con_id;
+    record.continent = {}
+    record.continent.id = item.ter_con_id;
+    record.continent.name = item.con_name;
     if (item.cur_name_plural != null)
         record.namePlural = item.cur_name_plural;
     record.fullName = item.cur_full_name;
@@ -168,58 +170,35 @@ function mapCurrencyUnit(item) {
 function addTerritory(currentRecord, item) {
     switch (item.tec_cur_type) {
         case "OWNED":
-            let ownedBy = {};
-
-            ownedBy.id = item.tec_ter_id
-            if (item.tec_start == null) {
-                ownedBy.start = item.cur_start;
-                if (item.cur_end != null)
-                    ownedBy.end = item.cur_end;
-            } else {
-                ownedBy.start = item.tec_start;
-                if (item.tec_end != null)
-                    ownedBy.start = item.tec_end;
-            }
-            if (currentRecord.ownedBy == null)
-                currentRecord.ownedBy = [ownedBy];
-            else
-                currentRecord.ownedBy.push(ownedBy);
+            currentRecord.ownedBy = setRelatedTerritory(currentRecord.ownedBy, item);
             break;
         case "SHARED":
-            let sharedBy = {};
-
-            sharedBy.id = item.tec_ter_id
-            if (item.tec_start == null) {
-                sharedBy.start = item.cur_start;
-                if (item.cur_end != null)
-                    sharedBy.end = item.cur_end;
-            } else {
-                sharedBy.start = item.tec_start;
-                if (item.tec_end != null)
-                    sharedBy.start = item.tec_end;
-            }
-            if (currentRecord.sharedBy == null)
-                currentRecord.sharedBy = [sharedBy];
-            else
-                currentRecord.sharedBy.push(sharedBy);
+            currentRecord.sharedBy = setRelatedTerritory(currentRecord.sharedBy, item);
             break;
         case "FOREIGN":
-            let usedBy = {};
-
-            usedBy.id = item.tec_ter_id
-            if (item.tec_start == null) {
-                usedBy.start = item.cur_start;
-                if (item.cur_end != null)
-                    usedBy.end = item.cur_end;
-            } else {
-                usedBy.start = item.tec_start;
-                if (item.tec_end != null)
-                    usedBy.start = item.tec_end;
-            }
-            if (currentRecord.usedBy == null)
-                currentRecord.usedBy = [usedBy];
-            else
-                currentRecord.usedBy.push(usedBy);
+            currentRecord.usedBy = setRelatedTerritory(currentRecord.usedBy, item);
             break;
+    }
+}
+
+function setRelatedTerritory(target, item) {
+    let relation = {};
+    relation.territory = {};
+    relation.territory.id = item.tec_ter_id
+    relation.territory.name = item.ter_name
+    if (item.tec_start == null) {
+        relation.start = item.cur_start;
+        if (item.cur_end != null)
+            relation.end = item.cur_end;
+    } else {
+        relation.start = item.tec_start;
+        if (item.tec_end != null)
+            relation.start = item.tec_end;
+    }
+    if (target == null)
+        return [relation];
+    else {
+        target.push(relation);
+        return target;
     }
 }

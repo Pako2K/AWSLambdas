@@ -30,7 +30,10 @@ class LambdaClient {
                     "cus_name": null,
                     "cus_name_plural": null,
                     "cus_abbreviation": null,
-                    "ter_con_id": 6
+                    "ter_name": "ABC",
+                    "ter_con_id": 7,
+                    "con_name": "Africa"
+
                 },
                 {
                     "cur_id": 18,
@@ -57,7 +60,9 @@ class LambdaClient {
                     "cus_name": null,
                     "cus_name_plural": null,
                     "cus_abbreviation": null,
-                    "ter_con_id": 7
+                    "ter_name": "ABC",
+                    "ter_con_id": 7,
+                    "con_name": "Africa"
                 },
                 {
                     "cur_id": 18,
@@ -84,7 +89,9 @@ class LambdaClient {
                     "cus_name": null,
                     "cus_name_plural": null,
                     "cus_abbreviation": null,
-                    "ter_con_id": 7
+                    "ter_name": "ABC",
+                    "ter_con_id": 7,
+                    "con_name": "Africa"
                 },
                 {
                     "cur_id": 18,
@@ -111,7 +118,9 @@ class LambdaClient {
                     "cus_name": null,
                     "cus_name_plural": null,
                     "cus_abbreviation": null,
-                    "ter_con_id": 7
+                    "ter_name": "ABC",
+                    "ter_con_id": 7,
+                    "con_name": "Africa"
                 },
                 {
                     "cur_id": 44,
@@ -138,7 +147,9 @@ class LambdaClient {
                     "cus_name": "Kapeek",
                     "cus_name_plural": "Kapeek",
                     "cus_abbreviation": null,
-                    "ter_con_id": 6
+                    "ter_name": "ABC",
+                    "ter_con_id": 7,
+                    "con_name": "Africa"
                 },
                 {
                     "cur_id": 77,
@@ -165,7 +176,10 @@ class LambdaClient {
                     "cus_name": "Shilling",
                     "cus_name_plural": "Shillings",
                     "cus_abbreviation": "s",
-                    "ter_con_id": 3
+                    "ter_name": "ABC",
+                    "ter_con_id": 7,
+                    "con_name": "Africa"
+
                 },
                 {
                     "cur_id": 77,
@@ -192,7 +206,9 @@ class LambdaClient {
                     "cus_name": "Penny",
                     "cus_name_plural": "Pence",
                     "cus_abbreviation": "p",
-                    "ter_con_id": 3
+                    "ter_name": "ABC",
+                    "ter_con_id": 7,
+                    "con_name": "Africa"
                 }
             ]
         });
