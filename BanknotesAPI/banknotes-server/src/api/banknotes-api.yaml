@@ -98,13 +98,13 @@ paths:
           $ref: '#/components/responses/500'
 
 
-  /territories/variants/stats:
+  /territory/stats:
     get:
       tags:
       - Territories
       summary: Get statistics about banknotes in catalogue for each territory.
       description: Returns statistics for the existing banknotes in the catalogue, based on territories.
-      operationId: territoriesVariantsStatsGET
+      operationId: territory-stats-get
       responses:
         "200":
           description: List of territories with statistics
@@ -113,12 +113,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/territoryCatStats'
+                  $ref: '#/components/schemas/territoryStats'
         "500":
           $ref: '#/components/responses/500'
   
   
-  /territories/items/stats:
+  /territory/collection/stats:
     get:
       tags:
       - Territories
@@ -1884,6 +1884,60 @@ components:
             format: uri
 
 
+    territoryStats:
+      allOf:    
+      - $ref: '#/components/schemas/territoryKey'
+      - type: object
+        required:
+        - numCurrencies
+        - numSeries
+        - numDenominations
+        - numNotes
+        - numVariants
+        properties:
+          numCurrencies:
+            type: integer
+          numSeries:
+            type: integer
+          numDenominations:
+            type: integer
+          numNotes:
+            type: integer
+          numVariants:
+            type: integer
+
+
+    territoryColStats:
+      allOf:    
+      - $ref: '#/components/schemas/territoryStats'
+      - type: object
+        required:
+        - collectionStats
+        properties:
+          collectionStats:
+            type: object
+            required:
+            - numCurrencies
+            - numSeries
+            - numDenominations
+            - numNotes
+            - numVariants
+            - price
+            properties:
+              numCurrencies:
+                type: integer
+              numSeries:
+                type: integer
+              numDenominations:
+                type: integer
+              numNotes:
+                type: integer
+              numVariants:
+                type: integer
+              price:
+                type: number
+
+
     currencyKey:
       type: object
       required:
@@ -1998,72 +2052,6 @@ components:
             format: uri
 
 
-    territoryCatStats:
-      allOf:    
-      - $ref: '#/components/schemas/territoryKey'
-      - type: object
-        required:
-        - continentId
-        - territoryTypeId
-        - start
-        - numCurrencies
-        - numSeries
-        - numDenominations
-        - numNotes
-        - numVariants
-        properties:
-          continentId:
-            type: integer
-          territoryTypeId:
-            type: integer
-          start:
-            type: integer
-          end:
-            type: integer
-          numCurrencies:
-            type: integer
-          numSeries:
-            type: integer
-          numDenominations:
-            type: integer
-          numNotes:
-            type: integer
-          numVariants:
-            type: integer
-
-
-    territoryColStats:
-      allOf:    
-      - $ref: '#/components/schemas/territoryCatStats'
-      - type: object
-        required:
-        - collectionStats
-        properties:
-          collectionStats:
-            type: object
-            required:
-            - numCurrencies
-            - numSeries
-            - numDenominations
-            - numNotes
-            - numVariants
-            - price
-            properties:
-              numCurrencies:
-                type: integer
-              numSeries:
-                type: integer
-              numDenominations:
-                type: integer
-              numNotes:
-                type: integer
-              numVariants:
-                type: integer
-              price:
-                type: number
-
-
-    
           
     currencyType:
       type: string

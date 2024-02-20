@@ -8,6 +8,7 @@ const { route } = require('./router');
 const OAS_JSON = setOAS();
 const VALIDATOR = setValidator();
 
+const VALIDATE = process.env.TEST == true
 
 exports.execAPI = async function(event) {
     const [operationId, requestSchema, responseSchema] = lookupAPI(event);
@@ -17,9 +18,14 @@ exports.execAPI = async function(event) {
         const result = await route(operationId, event.headers["x-correlation-id"], event.requestContext.domainName, event.queryStringParameters);
         if (!result.body)
             throw { code: 5002, message: `Internal error. ${JSON.stringify(result)}.` }
-        const validation = VALIDATOR.validate(result.body, responseSchema);
-        if (validation.valid) return result;
-        else throw { code: 5001, message: `Invalid Response: ${JSON.stringify(result.body)}. Errors: ${validation.errors}` }
+
+        // Validate only during testing (it is very slow for big messages!)
+        if (VALIDATE) {
+            const validation = VALIDATOR.validate(result.body, responseSchema);
+            if (!validation.valid)
+                throw { code: 5001, message: `Invalid Response: ${JSON.stringify(result.body)}. Errors: ${validation.errors}` }
+        }
+        return result;
     } catch (err) {
         const exc = exception(500, err.code, err.message);
         throw exc;

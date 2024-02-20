@@ -1,0 +1,1 @@
+aws lambda update-function-code --function-name banknotes-territory-stats-get --zip-file fileb://../target/banknotes-territory-stats-get.zip >nul
