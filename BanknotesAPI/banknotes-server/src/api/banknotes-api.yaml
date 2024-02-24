@@ -171,13 +171,13 @@ paths:
           $ref: '#/components/responses/500'
 
 
-  /currencies/variants/stats:
+  /currency/stats:
     get:
       tags: 
       - Currencies
       summary: Get statistics about banknotes in catalogue for each currency.
       description: Returns a list of currencies in the catalogue with their main features and statistics.
-      operationId: currenciesVariantsStatsGET
+      operationId: currency-stats-get
       responses:
         "200":
           description: List of currencies with statistics
@@ -186,7 +186,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/currencyCatStats'
+                  $ref: '#/components/schemas/currencyStats'
         "500":
           $ref: '#/components/responses/500'
   
@@ -1912,30 +1912,10 @@ components:
       - $ref: '#/components/schemas/territoryStats'
       - type: object
         required:
-        - collectionStats
+        - price
         properties:
-          collectionStats:
-            type: object
-            required:
-            - numCurrencies
-            - numSeries
-            - numDenominations
-            - numNotes
-            - numVariants
-            - price
-            properties:
-              numCurrencies:
-                type: integer
-              numSeries:
-                type: integer
-              numDenominations:
-                type: integer
-              numNotes:
-                type: integer
-              numVariants:
-                type: integer
-              price:
-                type: number
+          price:
+            type: number
 
 
     currencyKey:
@@ -2061,36 +2041,16 @@ components:
 
     
 
-    currencyCatStats:
+    currencyStats:
       allOf:    
       - $ref: '#/components/schemas/currencyKey'
       - type: object
         required:
-        - currencyType
-        - territory
-        - start
         - numSeries
         - numDenominations
         - numNotes
         - numVariants
         properties:
-          currencyType:
-            $ref: '#/components/schemas/currencyType'
-          territory:
-            allOf:    
-            - $ref: '#/components/schemas/territoryKey'
-            - type: object
-              required:
-              - continent
-              properties:
-                continent:
-                  $ref: '#/components/schemas/continent'
-          symbol:
-            type: string
-          start:
-            type: integer
-          end:
-            type: integer
           numSeries:
             type: integer
           numDenominations:
@@ -2103,30 +2063,13 @@ components:
 
     currencyColStats:
       allOf:    
-      - $ref: '#/components/schemas/currencyCatStats'
+      - $ref: '#/components/schemas/currencyStats'
       - type: object
         required:
-        - collectionStats
+        - price
         properties:
-          collectionStats:
-            type: object
-            required:
-            - numSeries
-            - numDenominations
-            - numNotes
-            - numVariants
-            - price
-            properties:
-              numSeries:
-                type: integer
-              numDenominations:
-                type: integer
-              numNotes:
-                type: integer
-              numVariants:
-                type: integer
-              price:
-                type: number
+          price:
+            type: number
             
     
     currencyByTerCatStats:

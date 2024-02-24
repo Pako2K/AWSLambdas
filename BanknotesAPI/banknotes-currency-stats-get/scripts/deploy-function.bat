@@ -1,0 +1,1 @@
+aws lambda update-function-code --function-name banknotes-currency-stats-get --zip-file fileb://../target/banknotes-currency-stats-get.zip >nul
