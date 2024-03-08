@@ -216,7 +216,40 @@ paths:
           $ref: '#/components/responses/403'
         "500":
           $ref: '#/components/responses/500'
-                
+
+
+  /denomination/stats:
+    get:
+      tags: 
+      - Banknotes
+      summary: Get statistics about banknotes in catalogue for each denomination.
+      description: Returns a list of denominations in the catalogue with statistics.
+      operationId: denomination-stats-get
+      parameters:
+      - in: query
+        name: fromYear
+        schema:
+          type: integer
+        required: false
+        description: Retrieve denominations issued in or after this year
+      - in: query
+        name: toYear
+        schema:
+          type: integer
+        required: false
+        description: Retrieve denominations issued up to this year
+      responses:
+        "200":
+          description: List of denominations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/denominationStats'
+        "500":
+          $ref: '#/components/responses/500'
+
 
   /series/{seriesId}/denomination:
     put:
@@ -290,39 +323,7 @@ paths:
           $ref: '#/components/responses/500'
     
       
-  /denominations/variants/stats:
-    get:
-      tags: 
-      - Banknotes
-      summary: Get statistics about banknotes in catalogue for each denomination.
-      description: Returns a list of denominations in the catalogue with statistics.
-      operationId: denominationsVariantsStatsGET
-      parameters:
-      - $ref: '#/components/parameters/searchContinentId'
-      - in: query
-        name: fromYear
-        schema:
-          type: integer
-        required: false
-        description: Retrieve denominations issued in or after this year
-      - in: query
-        name: toYear
-        schema:
-          type: integer
-        required: false
-        description: Retrieve denominations issued up to this year
-      responses:
-        "200":
-          description: List of denominations
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/denominationCatStats'
-        "500":
-          $ref: '#/components/responses/500'
-                
+  
            
   /denominations/items/stats:
     get:
@@ -2133,30 +2134,57 @@ components:
                 type: number
                 
                 
-    denominationCatStats:
+    denominationStats:
       type: object
       required:
       - denomination
-      - numTerritories
-      - numCurrencies
-      - numSeries
-      - numVariants
+      - continentStats
+      - totalStats
       properties:
         denomination:
           type: number
-        numTerritories:
-          type: integer
-        numCurrencies:
-          type: integer
-        numSeries:
-          type: integer
-        numVariants:
-          type: integer
+        continentStats:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - numTerritories
+            - numCurrencies
+            - numNotes
+            - numVariants
+            properties:
+              id:
+                type: integer
+              numTerritories:
+                type: integer
+              numCurrencies:
+                type: integer
+              numNotes:
+                type: integer
+              numVariants:
+                type: integer
+        totalStats:
+          type: object
+          required:
+          - numTerritories
+          - numCurrencies
+          - numNotes
+          - numVariants
+          properties:
+            numTerritories:
+              type: integer
+            numCurrencies:
+              type: integer
+            numNotes:
+              type: integer
+            numVariants:
+              type: integer
 
 
     denominationColStats:
       allOf:    
-      - $ref: '#/components/schemas/denominationCatStats'
+      - $ref: '#/components/schemas/denominationStats'
       - type: object
         required:
         - collectionStats
