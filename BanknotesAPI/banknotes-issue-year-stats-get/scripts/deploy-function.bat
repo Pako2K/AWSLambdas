@@ -1,0 +1,1 @@
+aws lambda update-function-code --function-name banknotes-issue-year-stats-get --zip-file fileb://../target/banknotes-issue-year-stats-get.zip >nul

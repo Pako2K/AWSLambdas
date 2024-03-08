@@ -251,6 +251,26 @@ paths:
           $ref: '#/components/responses/500'
 
 
+  /issue-year/stats:
+    get:
+      tags: 
+      - Variants
+      summary: Get statistics about banknotes in catalogue based on the year of issue.
+      description: Returns a list of issue-years for banknotes in the catalogue with statistics.
+      operationId: issue-year-stats-get
+      responses:
+        "200":
+          description: List of years
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/issueYearStats'
+        "500":
+          $ref: '#/components/responses/500'         
+         
+         
   /series/{seriesId}/denomination:
     put:
       tags: 
@@ -854,29 +874,7 @@ paths:
           $ref: '#/components/responses/500'
           
           
-  /years/variants/stats:
-    get:
-      tags: 
-      - Variants
-      summary: Get statistics about banknotes in catalogue based on the year of issue.
-      description: Returns a list of issue-years for banknotes in the catalogue with statistics.
-      operationId: issueYearsVariantsStatsGET
-      parameters:
-      - $ref: '#/components/parameters/dateType'
-      - $ref: '#/components/parameters/searchContinentId'
-      responses:
-        "200":
-          description: List of years
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/dateCatStats'
-        "500":
-          $ref: '#/components/responses/500'         
-         
-         
+  
   /years/items/stats:
     get:
       tags: 
@@ -2290,34 +2288,69 @@ components:
                 type: number
 
 
-    dateCatStats:
-      allOf:
-      - $ref: '#/components/schemas/date'
-      - type: object
-        required:
-        - numTerritories
-        - numCurrencies
-        - numSeries
-        - numDenominations
-        - numNotes
-        - numVariants
-        properties:
-          numTerritories:
-            type: integer
-          numCurrencies:
-            type: integer
-          numSeries:
-            type: integer
-          numDenominations:
-            type: integer
-          numNotes:
-            type: integer
-          numVariants:
-            type: integer
+    issueYearStats:
+      type: object
+      required:
+      - issueYear
+      - continentStats
+      - totalStats
+      properties:
+        issueYear:
+          type: number
+        continentStats:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - numTerritories
+            - numCurrencies
+            - numSeries
+            - numDenominations
+            - numNotes
+            - numVariants
+            properties:
+              id:
+                type: integer
+              numTerritories:
+                type: integer
+              numCurrencies:
+                type: integer
+              numSeries:
+                type: integer
+              numDenominations:
+                type: integer
+              numNotes:
+                type: integer
+              numVariants:
+                type: integer
+        totalStats:
+          type: object
+          required:
+          - numTerritories
+          - numCurrencies
+          - numSeries
+          - numDenominations
+          - numNotes
+          - numVariants
+          properties:
+            numTerritories:
+              type: integer
+            numCurrencies:
+              type: integer
+            numSeries:
+              type: integer
+            numDenominations:
+              type: integer
+            numNotes:
+              type: integer
+            numVariants:
+              type: integer
+      
 
     dateColStats:
       allOf:    
-      - $ref: '#/components/schemas/dateCatStats'
+      - $ref: '#/components/schemas/issueYearStats'
       - type: object
         required:
         - collectionStats
