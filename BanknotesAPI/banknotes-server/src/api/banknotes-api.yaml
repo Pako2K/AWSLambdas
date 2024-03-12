@@ -227,6 +227,12 @@ paths:
       operationId: denomination-stats-get
       parameters:
       - in: query
+        name: isCurrent
+        schema:
+          type: boolean
+        required: false
+        description: if true, retrieve denominations issued in existing Currencies.
+      - in: query
         name: fromYear
         schema:
           type: integer
@@ -2147,6 +2153,7 @@ components:
             type: object
             required:
             - id
+            - isCurrent
             - numTerritories
             - numCurrencies
             - numNotes
@@ -2154,6 +2161,8 @@ components:
             properties:
               id:
                 type: integer
+              isCurrent:
+                type: boolean
               numTerritories:
                 type: integer
               numCurrencies:
@@ -2165,11 +2174,14 @@ components:
         totalStats:
           type: object
           required:
+          - isCurrent
           - numTerritories
           - numCurrencies
           - numNotes
           - numVariants
           properties:
+            isCurrent:
+              type: boolean
             numTerritories:
               type: integer
             numCurrencies:

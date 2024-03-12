@@ -5,19 +5,19 @@ const tests = [{
     result: {
         statusCode: 200,
         body: [
-            { "denomination": 0.005, "continentStats": [{ "id": 3, "numTerritories": 1, "numCurrencies": 1, "numNotes": 1, "numVariants": 1 }], "totalStats": { "numTerritories": 1, "numCurrencies": 1, "numNotes": 1, "numVariants": 1 } },
+            { "denomination": 0.005, "continentStats": [{ "id": 3, "isCurrent": false, "numTerritories": 1, "numCurrencies": 1, "numNotes": 1, "numVariants": 1 }], "totalStats": { "isCurrent": false, "numTerritories": 1, "numCurrencies": 1, "numNotes": 1, "numVariants": 1 } },
             {
                 "denomination": 0.01,
                 "continentStats": [
-                    { "id": 2, "numTerritories": 1, "numCurrencies": 1, "numNotes": 1, "numVariants": 1 },
-                    { "id": 3, "numTerritories": 3, "numCurrencies": 3, "numNotes": 3, "numVariants": 4 },
-                    { "id": 4, "numTerritories": 3, "numCurrencies": 3, "numNotes": 3, "numVariants": 3 },
-                    { "id": 5, "numTerritories": 7, "numCurrencies": 8, "numNotes": 10, "numVariants": 20 },
-                    { "id": 6, "numTerritories": 1, "numCurrencies": 1, "numNotes": 1, "numVariants": 1 }
+                    { "id": 2, "isCurrent": false, "numTerritories": 1, "numCurrencies": 1, "numNotes": 1, "numVariants": 1 },
+                    { "id": 3, "isCurrent": false, "numTerritories": 3, "numCurrencies": 3, "numNotes": 3, "numVariants": 4 },
+                    { "id": 4, "isCurrent": true, "numTerritories": 3, "numCurrencies": 3, "numNotes": 3, "numVariants": 3 },
+                    { "id": 5, "isCurrent": false, "numTerritories": 7, "numCurrencies": 8, "numNotes": 10, "numVariants": 20 },
+                    { "id": 6, "isCurrent": false, "numTerritories": 1, "numCurrencies": 1, "numNotes": 1, "numVariants": 1 }
                 ],
-                "totalStats": { "numTerritories": 15, "numCurrencies": 16, "numNotes": 18, "numVariants": 29 }
+                "totalStats": { "isCurrent": true, "numTerritories": 15, "numCurrencies": 16, "numNotes": 18, "numVariants": 29 }
             },
-            { "denomination": 0.016666668, "continentStats": [{ "id": 6, "numTerritories": 2, "numCurrencies": 1, "numNotes": 2, "numVariants": 6 }], "totalStats": { "numTerritories": 2, "numCurrencies": 1, "numNotes": 2, "numVariants": 6 } },
+            { "denomination": 0.0167, "continentStats": [{ "id": 6, "isCurrent": true, "numTerritories": 2, "numCurrencies": 1, "numNotes": 2, "numVariants": 6 }], "totalStats": { "isCurrent": true, "numTerritories": 2, "numCurrencies": 1, "numNotes": 2, "numVariants": 6 } },
         ]
     },
     event: { "correlationId": 123, "key": "KEY", "domainName": "host" },

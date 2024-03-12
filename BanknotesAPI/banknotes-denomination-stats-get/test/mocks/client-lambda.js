@@ -7,6 +7,7 @@ class LambdaClient {
             "statusCode": 200,
             "body": [{
                     "denomination": 0.005,
+                    "isCurrent": false,
                     "continentId": 3,
                     "continentName": "South A",
                     "numTerritories": 1,
@@ -16,6 +17,7 @@ class LambdaClient {
                 },
                 {
                     "denomination": 0.01,
+                    "isCurrent": false,
                     "continentId": 2,
                     "continentName": "South A",
                     "numTerritories": 1,
@@ -25,6 +27,7 @@ class LambdaClient {
                 },
                 {
                     "denomination": 0.01,
+                    "isCurrent": false,
                     "continentId": 3,
                     "continentName": "South A",
                     "numTerritories": 3,
@@ -34,6 +37,7 @@ class LambdaClient {
                 },
                 {
                     "denomination": 0.01,
+                    "isCurrent": true,
                     "continentId": 4,
                     "continentName": "South A",
                     "numTerritories": 3,
@@ -43,6 +47,7 @@ class LambdaClient {
                 },
                 {
                     "denomination": 0.01,
+                    "isCurrent": false,
                     "continentId": 5,
                     "continentName": "South A",
                     "numTerritories": 7,
@@ -52,6 +57,7 @@ class LambdaClient {
                 },
                 {
                     "denomination": 0.01,
+                    "isCurrent": false,
                     "continentId": 6,
                     "continentName": "South A",
                     "numTerritories": 1,
@@ -61,6 +67,7 @@ class LambdaClient {
                 },
                 {
                     "denomination": 0.016666668,
+                    "isCurrent": true,
                     "continentId": 6,
                     "continentName": "South A",
                     "numTerritories": 2,
