@@ -227,12 +227,6 @@ paths:
       operationId: denomination-stats-get
       parameters:
       - in: query
-        name: isCurrent
-        schema:
-          type: boolean
-        required: false
-        description: if true, retrieve denominations issued in existing Currencies.
-      - in: query
         name: fromYear
         schema:
           type: integer
