@@ -10,7 +10,6 @@ exports.handler = async function(event, context) {
     const log = new Logger("Banknotes-Server", event.headers["x-correlation-id"]);
 
     log.info(`Request received: ${JSON.stringify(event.requestContext.http)}, query string: ${event.rawQueryString}`);
-    log.debug(`Event: ${JSON.stringify(event)}`);
     log.debug(`Context: ${JSON.stringify(context)}`);
 
     // Call API

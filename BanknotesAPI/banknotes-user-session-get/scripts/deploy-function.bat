@@ -1,0 +1,1 @@
+aws lambda update-function-code --function-name banknotes-user-session-get --zip-file fileb://../target/banknotes-user-session-get.zip >nul
