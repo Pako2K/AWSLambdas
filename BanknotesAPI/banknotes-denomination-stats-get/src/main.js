@@ -86,12 +86,6 @@ exports.handler = async function(event) {
         if (body.length > 0) {
             newRecord.denomination = null;
             newRecord.continentStats = [];
-            newRecord.totalStats = {};
-            newRecord.totalStats.isCurrent = false;
-            newRecord.totalStats.numTerritories = 0;
-            newRecord.totalStats.numCurrencies = 0;
-            newRecord.totalStats.numNotes = 0;
-            newRecord.totalStats.numVariants = 0;
             for (let rec of body) {
                 // Format denomination
                 let denom = Number.parseFloat(rec.denomination.toPrecision(3))
@@ -102,12 +96,6 @@ exports.handler = async function(event) {
                     newRecord = {};
                     newRecord.denomination = denom
                     newRecord.continentStats = [];
-                    newRecord.totalStats = {}
-                    newRecord.totalStats.isCurrent = false;
-                    newRecord.totalStats.numTerritories = 0;
-                    newRecord.totalStats.numCurrencies = 0;
-                    newRecord.totalStats.numNotes = 0;
-                    newRecord.totalStats.numVariants = 0;
                 }
                 newRecord.denomination = denom
                 let stats = {};
@@ -118,12 +106,6 @@ exports.handler = async function(event) {
                 stats.numNotes = parseInt(rec.numNotes);
                 stats.numVariants = parseInt(rec.numVariants);
                 newRecord.continentStats.push(stats);
-
-                newRecord.totalStats.isCurrent = newRecord.totalStats.isCurrent || stats.isCurrent;
-                newRecord.totalStats.numTerritories += stats.numTerritories;
-                newRecord.totalStats.numCurrencies += stats.numCurrencies;
-                newRecord.totalStats.numNotes += stats.numNotes;
-                newRecord.totalStats.numVariants += stats.numVariants;
             }
             respBody.push(newRecord);
         }

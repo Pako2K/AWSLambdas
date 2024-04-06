@@ -6,6 +6,7 @@
     "author": "Pako2K",
     "license": "MIT",
     "dependencies": {
+        "jsonwebtoken": "^9.0.2",
         "logger": "file:../../CommonFunctions/logger"
     }
 }

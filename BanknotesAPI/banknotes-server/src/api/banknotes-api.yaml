@@ -175,9 +175,18 @@ paths:
     get:
       tags:
       - Territories
-      summary: Get statistics about banknotes in catalogue for each territory.
-      description: Returns statistics for the existing banknotes in the catalogue, based on territories.
+      summary: Get statistics about banknotes in the catalogue or in a collection for each territory. 
+      description: Returns statistics about banknotes in the catalogue or in a collection, if parameter 'user' and sessionId are provided, for each territory. 
       operationId: territory-stats-get
+      security:
+      - bearerToken: []
+      parameters:
+      - in: query
+        name: user
+        required: false
+        description: Retrieve only the stats for this user's collection
+        schema:
+          type: string
       responses:
         "200":
           description: List of territories with statistics
@@ -187,6 +196,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/territoryStats'
+        "400":
+          description: "ERR-01: Missing parameter in query string, ERR-02: Value of Http header (authorization) is not valid"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "401":
+          description: "ERR-11: Token is not valid"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          $ref: '#/components/responses/403'
         "500":
           $ref: '#/components/responses/500'
   
@@ -691,15 +714,6 @@ components:
             type: integer
           numVariants:
             type: integer
-
-
-    territoryColStats:
-      allOf:    
-      - $ref: '#/components/schemas/territoryStats'
-      - type: object
-        required:
-        - price
-        properties:
           price:
             type: number
 
@@ -885,7 +899,6 @@ components:
       required:
       - denomination
       - continentStats
-      - totalStats
       properties:
         denomination:
           type: number
@@ -895,7 +908,6 @@ components:
             type: object
             required:
             - id
-            - isCurrent
             - numTerritories
             - numCurrencies
             - numNotes
@@ -913,25 +925,8 @@ components:
                 type: integer
               numVariants:
                 type: integer
-        totalStats:
-          type: object
-          required:
-          - isCurrent
-          - numTerritories
-          - numCurrencies
-          - numNotes
-          - numVariants
-          properties:
-            isCurrent:
-              type: boolean
-            numTerritories:
-              type: integer
-            numCurrencies:
-              type: integer
-            numNotes:
-              type: integer
-            numVariants:
-              type: integer
+              price:
+                type: number
 
     
 
@@ -976,7 +971,6 @@ components:
       required:
       - issueYear
       - continentStats
-      - totalStats
       properties:
         issueYear:
           type: number
@@ -1007,92 +1001,9 @@ components:
                 type: integer
               numVariants:
                 type: integer
-        totalStats:
-          type: object
-          required:
-          - numTerritories
-          - numCurrencies
-          - numSeries
-          - numDenominations
-          - numNotes
-          - numVariants
-          properties:
-            numTerritories:
-              type: integer
-            numCurrencies:
-              type: integer
-            numSeries:
-              type: integer
-            numDenominations:
-              type: integer
-            numNotes:
-              type: integer
-            numVariants:
-              type: integer
-      
-
-    dateColStats:
-      allOf:    
-      - $ref: '#/components/schemas/issueYearStats'
-      - type: object
-        required:
-        - collectionStats
-        properties:
-          collectionStats:
-            type: object
-            required:
-            - numTerritories
-            - numCurrencies
-            - numSeries
-            - numDenominations
-            - numNotes
-            - numVariants
-            - price
-            properties:
-              numTerritories:
-                type: integer
-              numCurrencies:
-                type: integer
-              numSeries:
-                type: integer
-              numDenominations:
-                type: integer
-              numNotes:
-                type: integer
-              numVariants:
-                type: integer
               price:
                 type: number
-
-
-    dateByTerCatStats:
-      allOf:
-      - $ref: '#/components/schemas/date'
-      - type: object
-        required:
-        - numDenominations
-        - numVariants
-        properties:
-          numDenominations:
-            type: integer
-          numVariants:
-            type: integer
-                
-        
-    dateByCurCatStats:
-      allOf:
-      - $ref: '#/components/schemas/date'
-      - type: object
-        required:
-        - date
-        - numDenominations
-        - numVariants
-        properties:
-          numDenominations:
-            type: integer
-          numVariants:
-            type: integer
-    
+   
 
     item:
       type: object

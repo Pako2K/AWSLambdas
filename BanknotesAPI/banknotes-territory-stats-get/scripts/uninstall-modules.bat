@@ -1,3 +1,3 @@
 cd ..
-call npm uninstall logger
+call npm uninstall logger jsonwebtoken
 cd scripts

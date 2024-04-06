@@ -70,13 +70,6 @@ exports.handler = async function(event) {
         let newRecord = {};
         newRecord.issueYear = null
         newRecord.continentStats = [];
-        newRecord.totalStats = {}
-        newRecord.totalStats.numTerritories = 0;
-        newRecord.totalStats.numCurrencies = 0;
-        newRecord.totalStats.numSeries = 0;
-        newRecord.totalStats.numDenominations = 0;
-        newRecord.totalStats.numNotes = 0;
-        newRecord.totalStats.numVariants = 0;
         for (let rec of body) {
             if (newRecord.issueYear != null && rec.issueYear != newRecord.issueYear) {
                 // Add previous record
@@ -84,13 +77,6 @@ exports.handler = async function(event) {
                 newRecord = {};
                 newRecord.issueYear = rec.issueYear
                 newRecord.continentStats = [];
-                newRecord.totalStats = {}
-                newRecord.totalStats.numTerritories = 0;
-                newRecord.totalStats.numCurrencies = 0;
-                newRecord.totalStats.numSeries = 0;
-                newRecord.totalStats.numDenominations = 0;
-                newRecord.totalStats.numNotes = 0;
-                newRecord.totalStats.numVariants = 0;
             }
             newRecord.issueYear = rec.issueYear
             let stats = {};
@@ -102,13 +88,6 @@ exports.handler = async function(event) {
             stats.numNotes = parseInt(rec.numNotes);
             stats.numVariants = parseInt(rec.numVariants);
             newRecord.continentStats.push(stats);
-
-            newRecord.totalStats.numTerritories += stats.numTerritories;
-            newRecord.totalStats.numCurrencies += stats.numCurrencies;
-            newRecord.totalStats.numSeries += stats.numSeries;
-            newRecord.totalStats.numDenominations += stats.numDenominations;
-            newRecord.totalStats.numNotes += stats.numNotes;
-            newRecord.totalStats.numVariants += stats.numVariants;
         }
         respBody.push(newRecord);
         body = respBody
