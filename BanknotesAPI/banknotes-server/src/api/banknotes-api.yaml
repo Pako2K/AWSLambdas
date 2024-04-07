@@ -246,9 +246,18 @@ paths:
     get:
       tags: 
       - Currencies
-      summary: Get statistics about banknotes in catalogue for each currency.
-      description: Returns a list of currencies in the catalogue with their main features and statistics.
+      summary: Get statistics about banknotes in the catalogue or in a collection for each currency. 
+      description: Returns statistics about banknotes in the catalogue or in a collection, if parameter 'user' and sessionId are provided, for each currency. 
       operationId: currency-stats-get
+      security:
+      - bearerToken: []
+      parameters:
+      - in: query
+        name: user
+        required: false
+        description: Retrieve only the stats for this user's collection
+        schema:
+          type: string
       responses:
         "200":
           description: List of currencies with statistics
@@ -258,6 +267,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/currencyStats'
+        "400":
+          description: "ERR-01: Missing parameter in query string, ERR-02: Value of Http header (authorization) is not valid"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "401":
+          description: "ERR-11: Token is not valid"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          $ref: '#/components/responses/403'
         "500":
           $ref: '#/components/responses/500'
   
@@ -266,10 +289,18 @@ paths:
     get:
       tags: 
       - Banknotes
-      summary: Get statistics about banknotes in catalogue for each denomination.
-      description: Returns a list of denominations in the catalogue with statistics.
+      summary: Get statistics about banknotes in the catalogue or in a collection for each denomination. 
+      description: Returns statistics about banknotes in the catalogue or in a collection, if parameter 'user' and sessionId are provided, for each denomination. 
       operationId: denomination-stats-get
+      security:
+      - bearerToken: []
       parameters:
+      - in: query
+        name: user
+        required: false
+        description: Retrieve only the stats for this user's collection
+        schema:
+          type: string
       - in: query
         name: fromYear
         schema:
@@ -291,6 +322,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/denominationStats'
+        "400":
+          description: "ERR-01: Missing parameter in query string, ERR-02: Value of Http header (authorization) is not valid"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "401":
+          description: "ERR-11: Token is not valid"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          $ref: '#/components/responses/403'
         "500":
           $ref: '#/components/responses/500'
 
@@ -299,9 +344,18 @@ paths:
     get:
       tags: 
       - Variants
-      summary: Get statistics about banknotes in catalogue based on the year of issue.
-      description: Returns a list of issue-years for banknotes in the catalogue with statistics.
+      summary: Get statistics about banknotes in the catalogue or in a collection for each year of issue. 
+      description: Returns statistics about banknotes in the catalogue or in a collection, if parameter 'user' and sessionId are provided, for each year of issue. 
       operationId: issue-year-stats-get
+      security:
+      - bearerToken: []
+      parameters:
+      - in: query
+        name: user
+        required: false
+        description: Retrieve only the stats for this user's collection
+        schema:
+          type: string
       responses:
         "200":
           description: List of years
@@ -311,11 +365,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/issueYearStats'
+        "400":
+          description: "ERR-01: Missing parameter in query string, ERR-02: Value of Http header (authorization) is not valid"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "401":
+          description: "ERR-11: Token is not valid"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          $ref: '#/components/responses/403'
         "500":
           $ref: '#/components/responses/500'         
          
-        
-  
   
                 
                 
@@ -927,44 +993,7 @@ components:
                 type: integer
               price:
                 type: number
-
-    
-
-    denominationByTerCatStats:
-      type: object
-      required:
-      - denomination
-      - numCurrencies
-      - numSeries
-      - numVariants
-      properties:
-        denomination:
-          type: number
-        numCurrencies:
-          type: integer
-        numSeries:
-          type: integer
-        numVariants:
-          type: integer
-
-
-    
-
-    denominationByCurCatStats:
-      type: object
-      required:
-      - denomination
-      - numSeries
-      - numVariants
-      properties:
-        denomination:
-          type: number
-        numSeries:
-          type: integer
-        numVariants:
-          type: integer
-
-
+       
 
     issueYearStats:
       type: object

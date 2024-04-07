@@ -6,18 +6,75 @@ const { Logger } = require('logger');
 
 const lambdaClient = new LambdaClient();
 
-const sql = `SELECT  CUR.cur_id AS id, CUR.cur_name as name,
-                count (DISTINCT SER.ser_id) AS "numSeries", 
-                count(DISTINCT(BAN.ban_face_value * 10000 + BAN.ban_cus_id)) AS "numDenominations", 
-                count(DISTINCT BAN.ban_id) AS "numNotes", count(DISTINCT BVA.bva_id) AS "numVariants"
-            FROM cur_currency CUR
-                LEFT JOIN tec_territory_currency TEC ON (TEC.tec_cur_id = CUR.cur_id AND TEC.tec_cur_type='OWNED')
-                LEFT JOIN iss_issuer ISS ON ISS.iss_ter_id = TEC.tec_ter_id
-                LEFT JOIN ser_series SER ON SER.ser_cur_id = TEC.tec_cur_id AND SER.ser_iss_id = ISS.iss_id
-                LEFT JOIN ban_banknote BAN ON BAN.ban_ser_id = SER.ser_id
-                LEFT JOIN bva_variant BVA ON BVA.bva_ban_id = BAN.ban_id
-            GROUP BY id`;
+const sqlCatalog = `SELECT id, name, 
+                    sum("numSeries") AS "numSeries", sum("numDenominations") AS "numDenominations", 
+                    sum("numNotes") AS "numNotes", sum("numVariants") AS "numVariants"
+                    FROM(
+                        SELECT  CUR.cur_id AS id, CUR.cur_name AS name, 
+                                count(DISTINCT SER.ser_id) AS "numSeries", 
+                                count(DISTINCT(BAN.ban_face_value * 10000 + BAN.ban_cus_id)) AS "numDenominations", 
+                                count(DISTINCT BAN.ban_id) AS "numNotes", count(DISTINCT BVA.bva_id) AS "numVariants"
+                        FROM cur_currency CUR
+                                LEFT JOIN tec_territory_currency TEC ON (TEC.tec_cur_id = CUR.cur_id AND TEC.tec_cur_type='OWNED')
+                                LEFT JOIN iss_issuer ISS ON ISS.iss_ter_id = TEC.tec_ter_id
+                                LEFT JOIN ser_series SER ON SER.ser_cur_id = TEC.tec_cur_id AND SER.ser_iss_id = ISS.iss_id
+                                LEFT JOIN ban_banknote BAN ON BAN.ban_ser_id = SER.ser_id
+                                LEFT JOIN bva_variant BVA ON BVA.bva_ban_id = BAN.ban_id
+                        GROUP BY id
+                        UNION
+                        SELECT  CUR.cur_id AS id, CUR.cur_name AS name,           
+                                count (DISTINCT SER.ser_id) AS "numSeries", 
+                                count(DISTINCT(BAN.ban_face_value * 10000 + BAN.ban_cus_id)) AS "numDenominations", 
+                                count(DISTINCT BAN.ban_id) AS "numNotes", count(DISTINCT BVA.bva_id) AS "numVariants"
+                        FROM cur_currency CUR
+                        LEFT JOIN tec_territory_currency TEC ON (TEC.tec_cur_id = CUR.cur_id AND TEC.tec_cur_type='SHARED')
+                        LEFT JOIN iss_issuer ISS ON ISS.iss_ter_id = TEC.tec_ter_id
+                        INNER JOIN ser_series SER ON SER.ser_cur_id = TEC.tec_cur_id AND SER.ser_iss_id = ISS.iss_id
+                        LEFT JOIN ban_banknote BAN ON BAN.ban_ser_id = SER.ser_id
+                        LEFT JOIN bva_variant BVA ON BVA.bva_ban_id = BAN.ban_id
+                        GROUP BY id
+                    ) AS stats
+                    GROUP BY id, name
+                    ORDER BY name`;
 
+const PARAM_USER = "$USER"
+const sqlCollection = `SELECT id, name, 
+                        sum("numSeries") AS "numSeries", sum("numDenominations") AS "numDenominations", 
+                        sum("numNotes") AS "numNotes", sum("numVariants") AS "numVariants",
+                        sum("price") AS "price"
+                        FROM(
+                            SELECT  CUR.cur_id AS id, CUR.cur_name AS name, 
+                                    count(DISTINCT SER.ser_id) AS "numSeries", 
+                                    count(DISTINCT(BAN.ban_face_value * 10000 + BAN.ban_cus_id)) AS "numDenominations", 
+                                    count(DISTINCT BAN.ban_id) AS "numNotes", count(DISTINCT BVA.bva_id) AS "numVariants",
+                                    sum(BIT.bit_price * BIT.bit_quantity) AS "price"
+                            FROM cur_currency CUR
+                                    LEFT JOIN tec_territory_currency TEC ON (TEC.tec_cur_id = CUR.cur_id AND TEC.tec_cur_type='OWNED')
+                                    LEFT JOIN iss_issuer ISS ON ISS.iss_ter_id = TEC.tec_ter_id
+                                    LEFT JOIN ser_series SER ON SER.ser_cur_id = TEC.tec_cur_id AND SER.ser_iss_id = ISS.iss_id
+                                    LEFT JOIN ban_banknote BAN ON BAN.ban_ser_id = SER.ser_id
+                                    LEFT JOIN bva_variant BVA ON BVA.bva_ban_id = BAN.ban_id
+                                    INNER JOIN bit_item BIT ON bit_bva_id = bva_id
+                                    INNER JOIN usr_user USR ON USR.usr_id = bit_usr_id AND USR.usr_name = '${PARAM_USER}'
+                            GROUP BY id
+                            UNION
+                            SELECT  CUR.cur_id AS id, CUR.cur_name AS name,           
+                                    count (DISTINCT SER.ser_id) AS "numSeries", 
+                                    count(DISTINCT(BAN.ban_face_value * 10000 + BAN.ban_cus_id)) AS "numDenominations", 
+                                    count(DISTINCT BAN.ban_id) AS "numNotes", count(DISTINCT BVA.bva_id) AS "numVariants",
+                                    sum(BIT.bit_price * BIT.bit_quantity) AS "price"
+                            FROM cur_currency CUR
+                            LEFT JOIN tec_territory_currency TEC ON (TEC.tec_cur_id = CUR.cur_id AND TEC.tec_cur_type='SHARED')
+                            LEFT JOIN iss_issuer ISS ON ISS.iss_ter_id = TEC.tec_ter_id
+                            INNER JOIN ser_series SER ON SER.ser_cur_id = TEC.tec_cur_id AND SER.ser_iss_id = ISS.iss_id
+                            LEFT JOIN ban_banknote BAN ON BAN.ban_ser_id = SER.ser_id
+                            LEFT JOIN bva_variant BVA ON BVA.bva_ban_id = BAN.ban_id
+                            INNER JOIN bit_item BIT ON bit_bva_id = bva_id
+                            INNER JOIN usr_user USR ON USR.usr_id = bit_usr_id AND USR.usr_name = '${PARAM_USER}'
+                            GROUP BY id
+                        ) AS stats
+                        GROUP BY id, name
+                        ORDER BY name`;
 
 /* 
     Expected event:
@@ -30,10 +87,22 @@ exports.handler = async function(event) {
 
     log.info(`Request received. Query String: ${JSON.stringify(event.queryStrParams)} `);
 
+    let username;
+    if (event.queryStrParams)
+        username = event.queryStrParams.user
+
+    // Use SQL to retrieve collection stats
+    let querySQL
+    if (username)
+        querySQL = sqlCollection.replaceAll(PARAM_USER, username)
+    else
+        querySQL = sqlCatalog
+
+
     const commandParams = {
         FunctionName: "banknotes-db",
         InvocationType: "RequestResponse",
-        Payload: JSON.stringify({ sql: sql, correlationId: event.correlationId, key: event.key })
+        Payload: JSON.stringify({ sql: querySQL, correlationId: event.correlationId, key: event.key })
     };
 
     let status, body;

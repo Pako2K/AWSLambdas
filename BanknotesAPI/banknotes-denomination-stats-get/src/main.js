@@ -6,7 +6,9 @@ const { Logger } = require('logger');
 
 const lambdaClient = new LambdaClient();
 
-const sql = `SELECT CASE WHEN BAN.ban_cus_id = 0 THEN BAN.ban_face_value ELSE BAN.ban_face_value / CUS.cus_value END AS "denomination",
+const YEAR_FILTER_JOIN = "$YEAR_FILTER_JOIN"
+const YEAR_FILTER = "$YEAR_FILTER"
+const sqlCatalog = `SELECT CASE WHEN BAN.ban_cus_id = 0 THEN BAN.ban_face_value ELSE BAN.ban_face_value / CUS.cus_value END AS "denomination",
                 CASE WHEN count(CASE WHEN CUR.cur_end is NULL THEN 1 ELSE NULL END) = 0 THEN false ELSE true END as "isCurrent",
                 CON.con_id AS "continentId", CON.con_name AS "continentName",
                 count (DISTINCT TER.ter_id) AS "numTerritories", count (DISTINCT CUR.cur_id) AS "numCurrencies",
@@ -15,12 +17,34 @@ const sql = `SELECT CASE WHEN BAN.ban_cus_id = 0 THEN BAN.ban_face_value ELSE BA
                 LEFT JOIN ser_series SER ON BAN.ban_ser_id = SER.ser_id
                 LEFT JOIN iss_issuer ISS ON ISS.iss_id = SER.ser_iss_id 
                 LEFT JOIN cur_currency CUR ON SER.ser_cur_id = CUR.cur_id 
-                LEFT JOIN tec_territory_currency TEC ON (TEC.tec_cur_id = CUR.cur_id AND TEC.tec_ter_id = ISS.iss_ter_id AND TEC.tec_cur_type = 'OWNED')
+                LEFT JOIN tec_territory_currency TEC ON (TEC.tec_cur_id = CUR.cur_id AND TEC.tec_ter_id = ISS.iss_ter_id)
                 LEFT JOIN cus_currency_unit CUS ON CUS.cus_id = BAN.ban_cus_id
                 LEFT JOIN ter_territory TER ON TER.ter_id = TEC.tec_ter_id 
-                INNER JOIN con_continent CON ON CON.con_id = TER.ter_con_id AND CON.con_order IS NOT NULL
+                INNER JOIN con_continent CON ON CON.con_id = TER.ter_con_id
+                ${YEAR_FILTER_JOIN} JOIN bva_variant BVA ON BVA.bva_ban_id = BAN.ban_id ${YEAR_FILTER}
+                GROUP BY "denomination", "continentId"
                 `;
 
+const PARAM_USER = "$USER"
+const sqlCollection = `SELECT CASE WHEN BAN.ban_cus_id = 0 THEN BAN.ban_face_value ELSE BAN.ban_face_value / CUS.cus_value END AS "denomination",
+                            CASE WHEN count(CASE WHEN CUR.cur_end is NULL THEN 1 ELSE NULL END) = 0 THEN false ELSE true END as "isCurrent",
+                            CON.con_id AS "continentId", CON.con_name AS "continentName",
+                            count (DISTINCT TER.ter_id) AS "numTerritories", count (DISTINCT CUR.cur_id) AS "numCurrencies",
+                            count (DISTINCT BAN.ban_id) AS "numNotes", count(DISTINCT BVA.bva_id) AS "numVariants", 
+                            sum(BIT.bit_price * BIT.bit_quantity) AS "price"
+                        FROM ban_banknote BAN           
+                            LEFT JOIN ser_series SER ON BAN.ban_ser_id = SER.ser_id
+                            LEFT JOIN iss_issuer ISS ON ISS.iss_id = SER.ser_iss_id 
+                            LEFT JOIN cur_currency CUR ON SER.ser_cur_id = CUR.cur_id 
+                            LEFT JOIN tec_territory_currency TEC ON (TEC.tec_cur_id = CUR.cur_id AND TEC.tec_ter_id = ISS.iss_ter_id)
+                            LEFT JOIN cus_currency_unit CUS ON CUS.cus_id = BAN.ban_cus_id
+                            LEFT JOIN ter_territory TER ON TER.ter_id = TEC.tec_ter_id 
+                            INNER JOIN con_continent CON ON CON.con_id = TER.ter_con_id
+                            INNER JOIN bva_variant BVA ON BVA.bva_ban_id = BAN.ban_id ${YEAR_FILTER}
+                            INNER JOIN bit_item BIT ON BIT.bit_bva_id = BVA.bva_id
+                            INNER JOIN usr_user USR ON USR.usr_id = BIT.bit_usr_id AND USR.usr_name = '${PARAM_USER}'
+                        GROUP BY "denomination", "continentId"
+`;
 
 /* 
     Expected event:
@@ -33,6 +57,10 @@ exports.handler = async function(event) {
 
     log.info(`Request received. Query String: ${JSON.stringify(event.queryStrParams)} `);
 
+    let username;
+    if (event.queryStrParams)
+        username = event.queryStrParams.user
+
     // Check parameters
     let yearFilter = "";
     if (event.queryStrParams != undefined) {
@@ -44,9 +72,12 @@ exports.handler = async function(event) {
             yearFilter += ` AND BVA.bva_issue_year <= ${yearTo}`;
     }
 
-    let finalSql = `${sql} ${yearFilter === "" ? "LEFT" : "INNER"} JOIN bva_variant BVA ON BVA.bva_ban_id = BAN.ban_id ${yearFilter}
-            GROUP BY "denomination", "continentId"
-            `;
+    let finalSql;
+
+    if (username)
+        finalSql = sqlCollection.replace(PARAM_USER, username).replace(YEAR_FILTER, yearFilter)
+    else
+        finalSql = sqlCatalog.replace(YEAR_FILTER_JOIN, yearFilter === "" ? "LEFT" : "INNER").replace(YEAR_FILTER, yearFilter)
 
     const commandParams = {
         FunctionName: "banknotes-db",
@@ -105,6 +136,8 @@ exports.handler = async function(event) {
                 stats.numCurrencies = parseInt(rec.numCurrencies);
                 stats.numNotes = parseInt(rec.numNotes);
                 stats.numVariants = parseInt(rec.numVariants);
+                if (rec.price)
+                    stats.price = parseFloat(rec.price);
                 newRecord.continentStats.push(stats);
             }
             respBody.push(newRecord);

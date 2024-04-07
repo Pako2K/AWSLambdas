@@ -1,4 +1,5 @@
 call ./uninstall-modules.bat
+call ./install-jsonwebtoken-module.bat
 call ./install-jsonschema-module.bat
 call ./install-yamljs-module.bat
 mkdir nodejs

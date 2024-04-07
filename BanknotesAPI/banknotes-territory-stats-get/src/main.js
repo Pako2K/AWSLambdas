@@ -4,14 +4,11 @@ const { LambdaClient, InvokeCommand } = require(process.env.CLIENT_LAMBDA_MOCK |
 
 const { Logger } = require('logger');
 
-const jwt = require('jsonwebtoken');
-
 const lambdaClient = new LambdaClient();
 
 const sqlCatalog = `SELECT "id", "name", sum("numCurrencies") AS "numCurrencies",
             sum("numSeries") AS "numSeries", sum("numDenominations") AS "numDenominations", 
-            sum("numNotes") AS "numNotes", sum("numVariants") AS "numVariants",
-            sum("numVariants") AS "numVariants"
+            sum("numNotes") AS "numNotes", sum("numVariants") AS "numVariants"
             FROM (
                 SELECT TER.ter_id AS id, TER.ter_name AS name, 
                     count(DISTINCT TEC.tec_cur_id) AS "numCurrencies", count (DISTINCT SER.ser_id) AS "numSeries", 
@@ -45,7 +42,7 @@ const PARAM_USER = "$USER"
 const sqlCollection = `SELECT "id", "name", sum("numCurrencies") AS "numCurrencies",
             sum("numSeries") AS "numSeries", sum("numDenominations") AS "numDenominations", 
             sum("numNotes") AS "numNotes", sum("numVariants") AS "numVariants",
-            sum("numVariants") AS "numVariants", sum("price") AS "price"
+            sum("price") AS "price"
             FROM (
             SELECT TER.ter_id AS id, TER.ter_name AS name, 
                 count(DISTINCT TEC.tec_cur_id) AS "numCurrencies", count (DISTINCT SER.ser_id) AS "numSeries", 
@@ -90,39 +87,9 @@ const sqlCollection = `SELECT "id", "name", sum("numCurrencies") AS "numCurrenci
 exports.handler = async function(event) {
     const log = new Logger("Territory-Stats-Get", event.correlationId, event.key);
 
-    // Read from Authorization header
     let username;
-    if (event.headers) {
-        let authHeader = event.headers.Authorization || event.headers.authorization;
-        if (authHeader) {
-            // Extract token
-            // Authorization looks like  "Bearer Y2hhcmxlcz"
-            let tokenizedAuth = authHeader.split(' ');
-            if (tokenizedAuth.length !== 2 || tokenizedAuth[0] !== "Bearer") {
-                return response(log, 400, exceptionJSON(log, "ERR-02", "Value of Http header (authorization) is not a Bearer token"));
-            }
-
-            let token = tokenizedAuth[1];
-
-            try {
-                username = jwt.verify(token, process.env.TOKEN_SECRET).username;
-                log.info(`User ${username} authenticated`);
-            } catch (exception) {
-                log.error(`Error: ${JSON.stringify(exception)}`);
-                return response(log, 401, exceptionJSON(log, "ERR-11", exception.message));
-            }
-
-            log.info(`Request received. Query String: ${JSON.stringify(event.queryStrParams)} `);
-
-            // Validate username
-            if (event.queryStrParams != undefined) {
-                // Check username against received value in token
-                if (username != event.queryStrParams.user)
-                    return response(log, 403, exceptionJSON(log, "ERR-13", "User does not match"));
-            } else
-                return response(log, 400, exceptionJSON(log, "ERR-01", "Missing parameter in query string"));
-        }
-    }
+    if (event.queryStrParams != undefined)
+        username = event.queryStrParams.user
 
     // Use SQL to retrieve collection stats
     let querySQL
@@ -166,18 +133,3 @@ exports.handler = async function(event) {
     log.info(`Response sent: ${JSON.stringify(responseJSON)}`);
     return responseJSON;
 };
-
-function exceptionJSON(log, code, description) {
-    log.error(`Error: ${description}`);
-    return { code: code, description: description }
-}
-
-
-function response(log, status, bodyJSON) {
-    const response = {
-        statusCode: status,
-        body: JSON.stringify(bodyJSON)
-    };
-    log.info(`Response sent: HTTP ${status}`);
-    return response;
-}

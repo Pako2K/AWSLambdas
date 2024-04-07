@@ -4,8 +4,6 @@ const { LambdaClient, InvokeCommand } = require(process.env.CLIENT_LAMBDA_MOCK |
 
 const { Logger } = require('logger');
 
-const jwt = require('jsonwebtoken');
-
 const lambdaClient = new LambdaClient();
 
 const PARAM_USER = "$USER"
@@ -44,27 +42,10 @@ exports.handler = async function(event) {
     // Read from Authorization header
     let authHeader = event.headers.Authorization || event.headers.authorization;
 
-    if (!authHeader) {
-        return response(log, 400, exceptionJSON("ERR-01", "Http header (authorization) not provided"));
-    }
+    if (!event.queryStrParams && !event.queryStrParams.user)
+        return response(log, 400, exceptionJSON("ERR-01", "Missing parameter in query string"));
 
-    // Extract token
-    // Authorization looks like  "Bearer Y2hhcmxlcz"
-    let tokenizedAuth = authHeader.split(' ');
-    if (tokenizedAuth.length !== 2 || tokenizedAuth[0] !== "Bearer") {
-        return response(log, 400, exceptionJSON("ERR-02", "Value of Http header (authorization) is not a Bearer token"));
-    }
-
-    let token = tokenizedAuth[1];
-
-    let username;
-    try {
-        username = jwt.verify(token, process.env.TOKEN_SECRET).username;
-        log.info(`User ${username} authenticated`);
-    } catch (exception) {
-        log.error(`Error: ${JSON.stringify(exception)}`);
-        return response(log, 401, exceptionJSON("ERR-11", exception.message));
-    }
+    let username = event.queryStrParams.user;
 
     // Build query string preventing sql injection
     let querySQL = sql.replace(PARAM_USER, username)
