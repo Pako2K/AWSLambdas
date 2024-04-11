@@ -193,7 +193,7 @@ function setRelatedTerritory(target, item) {
     } else {
         relation.start = item.tec_start;
         if (item.tec_end != null)
-            relation.start = item.tec_end;
+            relation.end = item.tec_end;
     }
     if (target == null)
         return [relation];
