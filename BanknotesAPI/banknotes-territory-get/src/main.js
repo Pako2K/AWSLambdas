@@ -13,6 +13,10 @@ const sql = `SELECT TER.ter_id as id, TER.ter_name as name, TER.ter_con_id as "c
             FROM ter_territory TER, con_continent CON, tty_territory_type TTY
             WHERE CON.con_id = TER.ter_con_id AND TTY.tty_id = TER.ter_tty_id
             `;
+const sqlIssuer = `SELECT ISS.iss_id as id, ISS.iss_ter_id as "territoryId", ISS.iss_name as "issuerName", ISS.iss_description as "issuerDescription"
+                    FROM ISS_ISSUER ISS
+                    ORDER BY "territoryId"
+                    `;
 
 /* 
     Expected event:
@@ -38,32 +42,49 @@ exports.handler = async function(event) {
         Payload: JSON.stringify({ sql: finalSql, correlationId: event.correlationId, key: event.key })
     };
 
-    let status, body;
+    const commandParamsIssuer = {
+        FunctionName: "banknotes-db",
+        InvocationType: "RequestResponse",
+        Payload: JSON.stringify({ sql: sqlIssuer, correlationId: event.correlationId, key: event.key })
+    };
+
+    let status, body, bodyIssuer;
     try {
         const command = new InvokeCommand(commandParams);
-
         log.info(`Request sent: ${JSON.stringify(commandParams)}`);
-
         // Call data provider
         const response = await lambdaClient.send(command);
         const respStr = new TextDecoder().decode(response.Payload);
 
         log.info(`Response received: ${respStr}`);
-
         const respJSON = JSON.parse(respStr);
-
-        status = respJSON.statusCode == undefined ? 500 : respJSON.statusCode;
         body = respJSON.body;
+
+        if (respJSON.statusCode = 200) {
+            const commandIssuer = new InvokeCommand(commandParamsIssuer);
+            log.info(`Request sent: ${JSON.stringify(commandParamsIssuer)}`);
+            // Call data provider
+            const responseIssuer = await lambdaClient.send(commandIssuer);
+            const respStrIssuer = new TextDecoder().decode(responseIssuer.Payload);
+
+            log.info(`Response received: ${respStrIssuer}`);
+            const respJSONIssuer = JSON.parse(respStrIssuer);
+            status = respJSONIssuer.statusCode == undefined ? 500 : respJSONIssuer.statusCode;
+            bodyIssuer = respJSONIssuer.body
+        } else
+            status = respJSON.statusCode == undefined ? 500 : respJSON.statusCode;
     } catch (err) {
         log.error(`Error: ${err}`);
         status = 500;
         body = JSON.stringify({ exception: err.message || err.exception });
     }
 
-    // Add URI and remove optional fields
+    // Add URI, merge Issuer and remove optional fields
     if (status == 200) {
-        if (body == null) body = [];
+        if (!body) body = [];
+        if (!bodyIssuer) bodyIssuer = []
         if (!Array.isArray(body)) body = [body];
+        if (!Array.isArray(bodyIssuer)) bodyIssuer = [bodyIssuer];
 
         for (let territory of body) {
             territory.uri = `https://${event.domainName}/territory?id=${territory.id}`;
@@ -85,6 +106,18 @@ exports.handler = async function(event) {
                     sucArray.push({ "id": parseInt(id) });
                 territory.successors = sucArray;
             }
+            territory.issuers = []
+            for (let iss of bodyIssuer) {
+                if (iss.territoryId == territory.id) {
+                    let issuer = {};
+                    issuer.id = iss.id;
+                    issuer.name = iss.issuerName;
+                    if (iss.issuerDescription) issuer.description = iss.issuerDescription
+                    territory.issuers.push(issuer);
+                }
+            }
+            if (territory.issuers.length == 0) delete territory.issuers
+
             if (territory.description == null) delete territory.description;
         }
     }

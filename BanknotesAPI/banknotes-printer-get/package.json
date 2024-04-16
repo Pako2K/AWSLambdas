@@ -1,0 +1,11 @@
+{
+    "name": "banknotes-printer-get",
+    "type": "commonjs",
+    "version": "1.0.0",
+    "description": "Lambda function to implement the operation printer-get",
+    "author": "Pako2K",
+    "license": "MIT",
+    "dependencies": {
+        "logger": "file:../../CommonFunctions/logger"
+    }
+}

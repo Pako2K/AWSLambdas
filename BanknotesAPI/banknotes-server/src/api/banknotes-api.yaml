@@ -383,6 +383,44 @@ paths:
           $ref: '#/components/responses/500'         
          
   
+  /printer:
+    get:
+      tags: 
+      - Miscellanea
+      summary: Get printing entities
+      description: Retrieves the list of known banknotes printing entities
+      operationId: printer-get
+      responses:
+        "200":
+          description: Success. 
+          content:
+            application/json:
+               schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/printer'
+        "500":
+          $ref: '#/components/responses/500'
+  
+  
+  /material:
+    get:
+      tags: 
+      - Miscellanea
+      summary: Get materials
+      description: Retrieves the list of known materials used to print banknotes
+      operationId: material-get
+      responses:
+        "200":
+          description: Success. 
+          content:
+            application/json:
+               schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/material'
+        "500":
+          $ref: '#/components/responses/500'  
                 
                 
 components:
@@ -752,6 +790,20 @@ components:
               properties:
                 id:
                   type: integer
+          issuers:
+            type: array
+            items:
+              type: object
+              required:
+                - id
+                - name
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+                description:
+                  type: string
           description:
             type: string
           uri:
@@ -1084,6 +1136,34 @@ components:
           type: string
 
 
+    printer:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+          
+
+    material:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
 
           
     iso2:
