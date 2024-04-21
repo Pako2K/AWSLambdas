@@ -14,6 +14,10 @@ class LambdaClient {
                 respStr = JSON.stringify({ "statusCode": 200, "body": [] });
                 payload = new TextEncoder().encode(respStr);
                 break;
+            case "banknotes-currency-issue-get":
+                respStr = JSON.stringify({ "statusCode": 200, "body": [] });
+                payload = new TextEncoder().encode(respStr);
+                break;
             default:
         }
 

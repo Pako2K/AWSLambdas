@@ -1,0 +1,1 @@
+aws lambda update-function-code --function-name banknotes-currency-issue-get --zip-file fileb://../target/banknotes-currency-issue-get.zip >nul

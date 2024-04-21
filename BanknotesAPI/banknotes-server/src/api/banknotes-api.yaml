@@ -242,6 +242,39 @@ paths:
           $ref: '#/components/responses/500'
 
 
+  /currency/{currencyId}/issue:
+    get:
+      tags:
+      - Currencies
+      summary: Get list of issues for a currency.
+      description: Returns the list of issues currencies, sorted chronologically
+      operationId: currency-issue-get
+      parameters:
+      - in: path
+        name: currencyId
+        required: true
+        description: currency id
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: List of issues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/issue'
+        "400":
+          description: "Invalid currencyId or currencyId not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "500":
+          $ref: '#/components/responses/500'
+
+
   /currency/stats:
     get:
       tags: 
@@ -927,22 +960,7 @@ components:
           units:
             type: array
             items:
-              type: object
-              required:
-              - id
-              - name
-              - value
-              properties:
-                id:
-                  type: integer
-                name:
-                  type: string
-                namePlural:
-                  type: string
-                value:
-                  type: number
-                abbreviation:
-                  type: string
+              $ref: '#/components/schemas/currencyUnit'
           description:
             type: string
           uri:
@@ -950,7 +968,25 @@ components:
             format: uri
 
 
-          
+    currencyUnit:
+      type: object
+      required:
+      - id
+      - name
+      - value
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        value:
+          type: number
+        abbreviation:
+          type: string
+        description:
+          type: string
+
+
     currencyType:
       type: string
       enum:
@@ -1085,6 +1121,125 @@ components:
               price:
                 type: number
    
+    issueKey:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+
+    issue:
+      allOf:    
+      - $ref: '#/components/schemas/issueKey'
+      - type: object
+        required:
+        - start
+        - issuerId
+        properties:
+          start:
+            type: integer
+          end:
+            type: integer
+          issuerId:
+            type: integer
+          law:
+            type: string
+          description:
+            type: string
+          isOverstamped:
+            type: boolean
+          banknotes:
+            type: array
+            items:
+              $ref: '#/components/schemas/banknote'
+
+    
+    banknote:
+      type: object
+      required:
+      - id
+      - faceValue
+      - unitId
+      properties:
+        id:
+          type: integer
+        faceValue:
+          type: number
+        unitId:
+          type: integer
+        materialId:
+          type: integer
+        width:
+          type: number
+        height:
+          type: number
+        isVertical:
+          type: boolean
+        obverseDesc:
+          type: string
+        reverseDesc:
+          type: string
+        description:
+          type: string
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/variant'
+
+
+    variant:
+      type: object
+      required:
+      - id
+      - catalogId
+      - issueYear
+      properties:
+        id:
+          type: string
+        catalogId:
+          type: string
+        issueYear:
+          type: integer
+        printedDate:
+          type: string
+        overstampedId:
+          type: integer
+        printerId: 
+          type: integer
+        signature:
+          type: string
+        signatureDesc:
+          type: string
+        watermark: 
+          type: string
+        securityThread:
+          type: string
+        addedSecurity:
+          type: string
+        obverseColor: 
+          type: string
+        reverseColor: 
+          type: string
+        description: 
+          type: string
+        notIssued: 
+          type: boolean
+        isSpecimen: 
+          type: boolean
+        isCommemorative:
+          type: boolean
+        isNumisProduct:
+          type: boolean
+        isReplacement: 
+          type: boolean
+        isError: 
+          type: boolean
+
 
     item:
       type: object

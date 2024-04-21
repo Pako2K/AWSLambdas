@@ -15,7 +15,7 @@ exports.execAPI = async function(event) {
 
     // Excecute operation
     try {
-        const result = await route(operationId, event.headers["x-correlation-id"], event.requestContext.domainName, event.headers, event.queryStringParameters);
+        const result = await route(operationId, event.headers["x-correlation-id"], event.requestContext.domainName, event.headers, event.queryStringParameters, event.requestContext.http.path);
         if (!result.body)
             throw { code: 5002, message: `Internal error. ${JSON.stringify(result)}.` }
 
@@ -43,10 +43,32 @@ function lookupAPI(event) {
         path = event.requestContext.http.path;
     }
 
-    const pathOAS = OAS_JSON.paths[path];
-    if (!pathOAS) throw exception(404, "404", "Resource not found");
+    // Tokenized path
+    let pathTokens = path.split("/");
 
-    const methodOAS = pathOAS[method];
+    // Match to paths
+    let pathMatched;
+    for (let oasPath in OAS_JSON.paths) {
+        // tokenize oasPath
+        let oasPathTokens = oasPath.split("/");
+        if (oasPathTokens.length != pathTokens.length) continue;
+        let match = true;
+        for (let i in pathTokens) {
+            if (oasPathTokens[i] == undefined || (!oasPathTokens[i].startsWith("{") && pathTokens[i] != oasPathTokens[i])) {
+                match = false;
+                break;
+            }
+        }
+        if (match) {
+            pathMatched = oasPath;
+            break;
+        }
+    }
+
+    //const pathOAS = OAS_JSON.paths[path];
+    if (!pathMatched) throw exception(404, "404", "Resource not found");
+
+    const methodOAS = OAS_JSON.paths[pathMatched][method];
     if (!methodOAS) throw exception(404, "404", "Resource/Operation not found");
 
     const operationId = methodOAS.operationId
