@@ -1,5 +1,7 @@
 "use strict";
 
+const jwt = require('jsonwebtoken');
+
 const yaml = require('yamljs');
 const JSONValidator = require('jsonschema').Validator;
 const { Logger } = require('logger');
@@ -11,17 +13,72 @@ const VALIDATOR = setValidator();
 const VALIDATE = process.env.TEST == true
 
 exports.execAPI = async function(event) {
-    const [operationId, requestSchema, responseSchema] = lookupAPI(event);
+    const log = new Logger("Banknotes-Server", event.headers["x-correlation-id"]);
+
+    const [mustAuthorize, operationId, requestSchema, responseSchema] = lookupAPI(event);
+
+    if (mustAuthorize) {
+        // Validate Authorization header
+        let username;
+        if (event.headers) {
+            let authHeader = event.headers.Authorization || event.headers.authorization;
+            if (authHeader && authHeader) {
+                // Extract token
+                // Authorization looks like  "Bearer Y2hhcmxlcz"
+                let tokenizedAuth = authHeader.split(' ');
+                if (tokenizedAuth.length == 2 && tokenizedAuth[0] == "Bearer") {
+                    let token = tokenizedAuth[1];
+
+                    try {
+                        username = jwt.verify(token, process.env.TOKEN_SECRET).username;
+                        log.info(`User ${username} authenticated`);
+                    } catch (exc) {
+                        log.error(`Error: ${JSON.stringify(exc)}`);
+                        throw exception(401, "ERR-11", exc.message);
+                    }
+
+                    // Validate username
+                    if (event.queryStringParameters != undefined) {
+                        // Check username against received value in token
+                        if (username != event.queryStringParameters.user)
+                            throw exception(403, "ERR-03", "User does not match");
+                    } else
+                        throw exception(400, "ERR-01", "Missing parameter in query string");
+                } else {
+                    throw exception(400, "ERR-02", "Value of Http header (authorization) is not valid");
+                }
+            } else {
+                throw exception(400, "ERR-02", "Value of Http header (authorization) is not valid");
+            }
+        } else {
+            throw exception(400, "ERR-02", "Value of Http header (authorization) is not valid");
+        }
+    }
+
+    // Validate request
+    if (Object.keys(requestSchema).length != 0) {
+        if (!event.body)
+            throw exception(400, "ERR-04", `Invalid Request Body. It is empty!`)
+
+        try {
+            event.body = JSON.parse(event.body)
+        } catch (exc) {
+            throw exception(400, "ERR-04", `Invalid Request Body (NO VALID JSON): ${event.body}`)
+        }
+        let validation = VALIDATOR.validate(event.body, requestSchema);
+        if (!validation.valid)
+            throw exception(400, "ERR-04", `Invalid Request Body: ${event.body}. Errors: ${validation.errors}`)
+    }
 
     // Excecute operation
     try {
-        const result = await route(operationId, event.headers["x-correlation-id"], event.requestContext.domainName, event.headers, event.queryStringParameters, event.requestContext.http.path);
+        const result = await route(operationId, event.headers["x-correlation-id"], event.requestContext.domainName, event.headers, event.queryStringParameters, event.requestContext.http.path, event.body);
         if (!result.body)
             throw { code: 5002, message: `Internal error. ${JSON.stringify(result)}.` }
 
         // Validate only during testing (it is very slow for big messages!)
         if (VALIDATE) {
-            const validation = VALIDATOR.validate(result.body, responseSchema);
+            let validation = VALIDATOR.validate(result.body, responseSchema);
             if (!validation.valid)
                 throw { code: 5001, message: `Invalid Response: ${JSON.stringify(result.body)}. Errors: ${validation.errors}` }
         }
@@ -76,6 +133,7 @@ function lookupAPI(event) {
 
     let reqSchema = {};
     let repSchema = {};
+    let mustAuthorize = false;
 
     try {
         if (method != 'get') reqSchema = methodOAS["requestBody"]["content"]["application/json"]["schema"];
@@ -89,7 +147,11 @@ function lookupAPI(event) {
         log.warn("No Response schema found");
     }
 
-    return [operationId, reqSchema, repSchema];
+    let security = methodOAS["security"]
+    if (security && security.length > 0 && security[0].bearerToken)
+        mustAuthorize = true
+
+    return [mustAuthorize, operationId, reqSchema, repSchema];
 }
 
 function setOAS() {

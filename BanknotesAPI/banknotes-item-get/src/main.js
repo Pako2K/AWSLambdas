@@ -39,9 +39,6 @@ const sql = `SELECT  BVA.bva_cat_id AS "catalogId",
 exports.handler = async function(event) {
     const log = new Logger("Item-Get", event.correlationId, event.key);
 
-    // Read from Authorization header
-    let authHeader = event.headers.Authorization || event.headers.authorization;
-
     if (!event.queryStrParams && !event.queryStrParams.user)
         return response(log, 400, exceptionJSON("ERR-01", "Missing parameter in query string"));
 
@@ -79,7 +76,6 @@ exports.handler = async function(event) {
     }
 
     // Mapping
-    let respBody = []
     if (status == 200) {
         if (body == null) body = [];
         if (!Array.isArray(body)) body = [body];

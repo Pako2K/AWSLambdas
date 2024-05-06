@@ -8,6 +8,7 @@
             "env": {
                 "LOG_LEVEL1": "DEBUG",
                 "CLIENT_LAMBDA_MOCK": "..\\test\\mocks\\client-lambda.js",
+                "TOKEN_SECRET": "49a247f0b0fc671dcacc166ac2701f544cdda9dc70891be76d0162191e60a30dd00010b9233ba7754986bb6f99142a6ce99880cffe2740ffc49947434c0bac3e"
             },
             "type": "node",
             "request": "launch",

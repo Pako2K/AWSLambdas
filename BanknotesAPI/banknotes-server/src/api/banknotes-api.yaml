@@ -78,6 +78,13 @@ paths:
       operationId: item-get
       security:
       - bearerToken: []
+      parameters:
+      - in: query
+        name: user
+        required: true
+        description: Retrieve only this user's collection (bearerToken must be generated for this user)
+        schema:
+          type: string
       responses:
         "200":
           description: List of items
@@ -101,6 +108,126 @@ paths:
                 $ref: '#/components/schemas/exception'
         "403":
           $ref: '#/components/responses/403'
+        "500":
+          $ref: '#/components/responses/500'
+
+    post:
+      tags: 
+      - Items
+      summary: Add a new item to the collection.
+      description: For the provided session's user it adds the specified item to the collection.
+      operationId: item-post
+      security:
+      - bearerToken: []
+      parameters:
+      - in: query
+        name: user
+        required: true
+        description: Add to this user's collection (bearerToken must be generated for this user)
+        schema:
+          type: string
+      requestBody:
+        required: true
+        description: "Item to be added: the item Id in the provided object can have any value. It will be ignored."
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/item'
+      responses:
+        "200":
+          description: Operation executed successfully. Item added to collection.
+          content:
+            application/json:
+              schema:
+                description: The created item with links
+                $ref: '#/components/schemas/itemLinked'
+        "400":
+          description: "ERR-01: Http header (authorization) not provided | ERR-02: Value of Http header (authorization) is not valid | ERR-03: Missing username in queryString | ERR-04: Invalid request body"
+          $ref: '#/components/responses/400'
+        "401":
+          $ref: '#/components/responses/401'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+    put:
+      tags: 
+      - Items
+      summary: Update an item in the collection.
+      description: For the provided session's user it updates the specified item.
+      operationId: item-put
+      security:
+      - bearerToken: []
+      parameters:
+      - in: query
+        name: user
+        required: true
+        description: Update to this user's collection (bearerToken must be generated for this user)
+        schema:
+          type: string
+      requestBody:
+        required: true
+        description: Item to be updated
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/item'
+      responses:
+        "200":
+          description: Operation executed successfully.
+        "400":
+          description: "ERR-01: Http header (authorization) not provided | ERR-02: Value of Http header (authorization) is not valid | ERR-03: Missing username in queryString | ERR-04: Invalid request body"
+          $ref: '#/components/responses/400'
+        "401":
+          $ref: '#/components/responses/401'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
+        "500":
+          $ref: '#/components/responses/500'
+    
+    delete:
+      tags: 
+      - Items
+      summary: Remove an item from the collection.
+      description: For the provided session's user it removes the specified item.
+      operationId: item-delete
+      security:
+      - bearerToken: []
+      parameters:
+      - in: query
+        name: user
+        required: true
+        description: Update to this user's collection (bearerToken must be generated for this user)
+        schema:
+          type: string
+      requestBody:
+        required: true
+        description: Id of the item to be deleted
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - id
+              properties:
+                id:
+                  type: integer
+      responses:
+        "200":
+          description: Operation executed successfully.
+        "400":
+          description: "ERR-01: Http header (authorization) not provided | ERR-02: Value of Http header (authorization) is not valid | ERR-03: Missing username in queryString"
+          $ref: '#/components/responses/400'
+        "401":
+          $ref: '#/components/responses/401'
+        "403":
+          $ref: '#/components/responses/403'
+        "404":
+          $ref: '#/components/responses/404'
         "500":
           $ref: '#/components/responses/500'
 
@@ -175,16 +302,36 @@ paths:
     get:
       tags:
       - Territories
-      summary: Get statistics about banknotes in the catalogue or in a collection for each territory. 
-      description: Returns statistics about banknotes in the catalogue or in a collection, if parameter 'user' and sessionId are provided, for each territory. 
+      summary: Get statistics about banknotes in the catalogue for each territory. 
+      description: Returns statistics about banknotes in the catalogue. 
+      operationId: territory-stats-get
+      responses:
+        "200":
+          description: List of territories with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/territoryStats'
+        "500":
+          $ref: '#/components/responses/500'
+  
+
+  /territory/collection/stats:
+    get:
+      tags:
+      - Territories
+      summary: Get statistics about banknotes in a collection for each territory. 
+      description: Returns statistics about banknotes in a collection
       operationId: territory-stats-get
       security:
       - bearerToken: []
       parameters:
       - in: query
         name: user
-        required: false
-        description: Retrieve only the stats for this user's collection
+        required: true
+        description: Retrieve the stats for this user's collection
         schema:
           type: string
       responses:
@@ -212,7 +359,6 @@ paths:
           $ref: '#/components/responses/403'
         "500":
           $ref: '#/components/responses/500'
-  
     
   
   /currency:
@@ -279,16 +425,36 @@ paths:
     get:
       tags: 
       - Currencies
-      summary: Get statistics about banknotes in the catalogue or in a collection for each currency. 
-      description: Returns statistics about banknotes in the catalogue or in a collection, if parameter 'user' and sessionId are provided, for each currency. 
+      summary: Get statistics about banknotes in the catalogue for each currency. 
+      description: Returns statistics about banknotes in the catalogue for each currency. 
+      operationId: currency-stats-get
+      responses:
+        "200":
+          description: List of currencies with statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/currencyStats'
+        "500":
+          $ref: '#/components/responses/500'
+  
+
+  /currency/collection/stats:
+    get:
+      tags: 
+      - Currencies
+      summary: Get statistics about banknotes in a collection for each currency. 
+      description: Returns statistics about banknotes in a collection for each currency. 
       operationId: currency-stats-get
       security:
       - bearerToken: []
       parameters:
       - in: query
         name: user
-        required: false
-        description: Retrieve only the stats for this user's collection
+        required: true
+        description: Retrieve the stats for this user's collection
         schema:
           type: string
       responses:
@@ -317,21 +483,60 @@ paths:
         "500":
           $ref: '#/components/responses/500'
   
-  
+
   /denomination/stats:
     get:
       tags: 
       - Banknotes
-      summary: Get statistics about banknotes in the catalogue or in a collection for each denomination. 
-      description: Returns statistics about banknotes in the catalogue or in a collection, if parameter 'user' and sessionId are provided, for each denomination. 
+      summary: Get statistics about banknotes in the catalogue for each denomination. 
+      description: Returns statistics about banknotes in the catalogue for each denomination. 
+      operationId: denomination-stats-get
+      parameters:
+      - in: query
+        name: fromYear
+        schema:
+          type: integer
+        required: false
+        description: Retrieve denominations issued in or after this year
+      - in: query
+        name: toYear
+        schema:
+          type: integer
+        required: false
+        description: Retrieve denominations issued up to this year
+      responses:
+        "200":
+          description: List of denominations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/denominationStats'
+        "400":
+          description: "ERR-01: Missing parameter in query string"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "500":
+          $ref: '#/components/responses/500'
+
+
+  /denomination/collection/stats:
+    get:
+      tags: 
+      - Banknotes
+      summary: Get statistics about banknotes in a collection for each denomination. 
+      description: Returns statistics about banknotes in a collection for each denomination. 
       operationId: denomination-stats-get
       security:
       - bearerToken: []
       parameters:
       - in: query
         name: user
-        required: false
-        description: Retrieve only the stats for this user's collection
+        required: true
+        description: Retrieve the stats for this user's collection
         schema:
           type: string
       - in: query
@@ -377,8 +582,28 @@ paths:
     get:
       tags: 
       - Variants
-      summary: Get statistics about banknotes in the catalogue or in a collection for each year of issue. 
-      description: Returns statistics about banknotes in the catalogue or in a collection, if parameter 'user' and sessionId are provided, for each year of issue. 
+      summary: Get statistics about banknotes in the catalogue for each year of issue. 
+      description: Returns statistics about banknotes in the catalogue for each year of issue. 
+      operationId: issue-year-stats-get
+      responses:
+        "200":
+          description: List of years
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/issueYearStats'
+        "500":
+          $ref: '#/components/responses/500'         
+         
+
+  /issue-year/collection/stats:
+    get:
+      tags: 
+      - Variants
+      summary: Get statistics about banknotes in a collection for each year of issue. 
+      description: Returns statistics about banknotes in a collection for each year of issue. 
       operationId: issue-year-stats-get
       security:
       - bearerToken: []
@@ -386,7 +611,7 @@ paths:
       - in: query
         name: user
         required: false
-        description: Retrieve only the stats for this user's collection
+        description: Retrieve the stats for this user's collection
         schema:
           type: string
       responses:
@@ -413,8 +638,8 @@ paths:
         "403":
           $ref: '#/components/responses/403'
         "500":
-          $ref: '#/components/responses/500'         
-         
+          $ref: '#/components/responses/500'   
+
   
   /printer:
     get:
@@ -687,6 +912,12 @@ components:
   responses:
     400:
       description: Invalid request. A parameter is missing or not valid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/exception'
+    401:
+      description: Invalid credentials (e.g. BearerToken).
       content:
         application/json:
           schema:

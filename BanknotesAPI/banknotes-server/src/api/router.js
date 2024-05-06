@@ -7,13 +7,13 @@ const lambdaClient = new LambdaClient();
 const FUNCTION_PREFIX = "banknotes-";
 
 
-exports.route = async function(operation, correlationId, domainName, headers, queryStringParams, path) {
+exports.route = async function(operation, correlationId, domainName, headers, queryStringParams, path, body) {
     const log = new Logger("Banknotes-Server", correlationId);
 
     const commandParams = {
         FunctionName: FUNCTION_PREFIX + operation,
         InvocationType: "RequestResponse",
-        Payload: JSON.stringify({ correlationId: correlationId, domainName: domainName, headers, queryStrParams: queryStringParams, path: path })
+        Payload: JSON.stringify({ correlationId: correlationId, domainName: domainName, headers, queryStrParams: queryStringParams, path: path, body: body })
     };
     const command = new InvokeCommand(commandParams);
 

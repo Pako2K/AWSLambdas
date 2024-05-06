@@ -1,0 +1,8 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        { "Sid": "stmt0", "Effect": "Allow", "Action": "lambda:InvokeFunction", "Resource": "arn:aws:lambda:eu-central-1:340810739314:function:banknotes-db" },
+        { "Sid": "stmt1", "Effect": "Allow", "Action": "logs:CreateLogGroup", "Resource": "arn:aws:logs:eu-central-1:340810739314:*" },
+        { "Sid": "stmt2", "Effect": "Allow", "Action": ["logs:CreateLogStream", "logs:PutLogEvents"], "Resource": "arn:aws:logs:eu-central-1:340810739314:log-group:/aws/lambda/banknotes-item-post:*" }
+    ]
+}
