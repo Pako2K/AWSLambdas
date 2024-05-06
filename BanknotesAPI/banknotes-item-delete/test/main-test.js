@@ -48,15 +48,7 @@ const tests = [{
         "correlationId": 123,
         "key": "KEY",
         "domainName": "host",
-        "body": {
-            "id": 0,
-            "variantId": 1,
-            "grade": "XF",
-            "quantity": 1,
-            "price": 5,
-            "purchaseDate": "2002-03-01",
-            "description": "Prefix 'V'. Printer Code 'M'"
-        }
+        "path": "/item/123"
     },
     context: {}
 }];

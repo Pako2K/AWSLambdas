@@ -17,7 +17,7 @@ const sqlDeleteItem = `DELETE FROM bit_item WHERE bit_id = ${PARAM_ID} AND bit_u
     - key           : main id in message, for logging
     - domainName    : URL domain name
     - headers       : with Authorization
-    - body          : payload
+    - path          : /item/{id}
 */
 exports.handler = async function(event) {
     const log = new Logger("Item-Delete", event.correlationId, event.key);
@@ -27,9 +27,13 @@ exports.handler = async function(event) {
 
     let username = event.queryStrParams.user;
 
+    let pathTokens = event.path.split("/")
+    if (pathTokens.length != 3 || !parseInt(pathTokens[2]))
+        return response(log, 400, exceptionJSON("ERR-02", "Missing or invalid item id"));
+
     // Build query string 
 
-    let sql = sqlDeleteItem.replace(PARAM_ID, event.body.id).replace(PARAM_USER, username)
+    let sql = sqlDeleteItem.replace(PARAM_ID, pathTokens[2]).replace(PARAM_USER, username)
 
     const commandParams = {
         FunctionName: "banknotes-db",

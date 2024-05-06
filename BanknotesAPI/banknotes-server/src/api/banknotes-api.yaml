@@ -188,7 +188,8 @@ paths:
           $ref: '#/components/responses/404'
         "500":
           $ref: '#/components/responses/500'
-    
+
+  /item/{id}:    
     delete:
       tags: 
       - Items
@@ -198,24 +199,18 @@ paths:
       security:
       - bearerToken: []
       parameters:
+      - in: path
+        name: id
+        required: true
+        description: Id of the item to be deleted
+        schema:
+          type: integer
       - in: query
         name: user
         required: true
         description: Update to this user's collection (bearerToken must be generated for this user)
         schema:
           type: string
-      requestBody:
-        required: true
-        description: Id of the item to be deleted
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-              - id
-              properties:
-                id:
-                  type: integer
       responses:
         "200":
           description: Operation executed successfully.
