@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "logger": "file:../../CommonFunctions/logger",
+    "nodemailer": "^6.9.13"
+  }
+}

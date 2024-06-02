@@ -96,36 +96,39 @@ exports.handler = async function(event) {
 
     // Map to response JSON
     if (status == 200) {
-        if (body == null) body = [];
-        if (!Array.isArray(body)) body = [body];
+        if (body == null || body.length == 0) {
+            body = [];
+        } else {
+            if (!Array.isArray(body)) body = [body];
 
-        let respBody = [];
-        let newRecord = {};
-        newRecord.issueYear = null
-        newRecord.continentStats = [];
-        for (let rec of body) {
-            if (newRecord.issueYear != null && rec.issueYear != newRecord.issueYear) {
-                // Add previous record
-                respBody.push(newRecord);
-                newRecord = {};
+            let respBody = [];
+            let newRecord = {};
+            newRecord.issueYear = null
+            newRecord.continentStats = [];
+            for (let rec of body) {
+                if (newRecord.issueYear != null && rec.issueYear != newRecord.issueYear) {
+                    // Add previous record
+                    respBody.push(newRecord);
+                    newRecord = {};
+                    newRecord.issueYear = rec.issueYear
+                    newRecord.continentStats = [];
+                }
                 newRecord.issueYear = rec.issueYear
-                newRecord.continentStats = [];
+                let stats = {};
+                stats.id = rec.continentId;
+                stats.numTerritories = parseInt(rec.numTerritories);
+                stats.numCurrencies = parseInt(rec.numCurrencies);
+                stats.numSeries = parseInt(rec.numSeries);
+                stats.numDenominations = parseInt(rec.numDenominations);
+                stats.numNotes = parseInt(rec.numNotes);
+                stats.numVariants = parseInt(rec.numVariants);
+                if (rec.price)
+                    stats.price = parseFloat(rec.price);
+                newRecord.continentStats.push(stats);
             }
-            newRecord.issueYear = rec.issueYear
-            let stats = {};
-            stats.id = rec.continentId;
-            stats.numTerritories = parseInt(rec.numTerritories);
-            stats.numCurrencies = parseInt(rec.numCurrencies);
-            stats.numSeries = parseInt(rec.numSeries);
-            stats.numDenominations = parseInt(rec.numDenominations);
-            stats.numNotes = parseInt(rec.numNotes);
-            stats.numVariants = parseInt(rec.numVariants);
-            if (rec.price)
-                stats.price = parseFloat(rec.price);
-            newRecord.continentStats.push(stats);
+            respBody.push(newRecord);
+            body = respBody
         }
-        respBody.push(newRecord);
-        body = respBody
     }
 
     const response = {

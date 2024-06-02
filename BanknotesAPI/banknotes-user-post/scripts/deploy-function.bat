@@ -1,0 +1,1 @@
+aws lambda update-function-code --function-name banknotes-user-post --zip-file fileb://../target/banknotes-user-post.zip >nul

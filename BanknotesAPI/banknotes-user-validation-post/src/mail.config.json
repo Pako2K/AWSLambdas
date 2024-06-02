@@ -1,0 +1,18 @@
+{
+    "SMTPTransport": {
+        "host": "mail.gmx.net",
+        "port": 587,
+        "secure": false,
+        "auth": {
+            "user": "banknotes-catalogue@gmx.net",
+            "pass": null
+        }
+    },
+
+    "confirmationPwdChangedOptions": {
+        "from": "banknotes-catalogue@gmx.net",
+        "to": null,
+        "subject": "The Banknotes Catalog: password changed",
+        "htmlTemplate": "<h3>Hi %%USERNAME%%,</h3>  <p>You changed your password in <i>The Banknotes Catalog</i>.</p>  <p><small>If you did not request this change, please reset your password immediately.<small></p>  <h3>The Banknotes Online Catalogue Team.</h3>"
+    }
+}

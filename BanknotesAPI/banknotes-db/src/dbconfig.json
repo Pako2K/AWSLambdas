@@ -1,9 +1,9 @@
 {
     "application_name": "BanknotesCatalog",
-    "user": "fvxoiwwq",
+    "user": "BanknotesApp",
     "password": "",
-    "host": "tyke.db.elephantsql.com",
-    "database": "fvxoiwwq",
+    "host": "ep-long-cake-a2pfnypp.eu-central-1.aws.neon.tech",
+    "database": "BanknotesCatalogDB",
     "ssl": {
         "rejectUnauthorized": false
     },

@@ -8,7 +8,8 @@
             "env": {
                 "LOG_LEVEL1": "DEBUG",
                 "CLIENT_LAMBDA_MOCK": "..\\test\\mocks\\client-lambda.js",
-                "TOKEN_SECRET": "asd"
+                "TOKEN_SECRET": "asd",
+                "MAIL_PWD": "asd"
             },
             "type": "node",
             "request": "launch",
@@ -17,7 +18,7 @@
                 "<node_internals>/**"
             ],
             "localRoot": "${workspaceFolder}\\src",
-            "program": "${workspaceFolder}\\test\\main-test.js",
+            "program": "${workspaceFolder}\\test\\main-test.js"
         }
     ]
 }

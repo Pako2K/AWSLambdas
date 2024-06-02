@@ -33,6 +33,217 @@ tags:
     description: Manage users and user sessions
 
 paths:
+  /user:
+    put:
+      tags: 
+      - Users
+      summary: Create (register) a new user
+      description: Request to create a new user. Username must be between 3 and 16 alphanumeric characters. Password must be between 8 and 32 characters. The request must be confirmed by providing a validaton code within 5 minutes. See /user/validation
+      operationId: user-put
+      security:
+      - basicAuthentication: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              properties:
+                username:
+                  type: string
+                email:
+                  $ref: '#/components/schemas/emailType'
+      responses:
+        "200":
+          description: User created. Validation must be done within 5 minutes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sessionResponse'
+        "400":
+          description: Invalid request. Some field in the request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          description: User or email is already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+                
+    post:
+      tags: 
+      - Users
+      summary: Update (change password request) for an existing user
+      description: Request to change the passsword of a user. The request must be confirmed by providing a validaton code within 5 minutes. See /user/validation (post)
+      operationId: user-post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - username
+              - email
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+      responses:
+        "200":
+          description: User request accepted. Validation and new password must be provided within 5 minutes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sessionResponse'
+        "400":
+          description: Invalid request. Some field in the request is not valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          description: User and email are not registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+                
+
+  /user/validation:
+    put:
+      tags: 
+      - Users
+      summary: Sends validation for a new user (registration)
+      description: Confirms the request to create a new account by sending the validation code
+      operationId: user-validation-put
+      security:
+      - bearerToken: []
+      parameters:
+      - in: query
+        name: user
+        required: true
+        description: Validation for this user (bearerToken must be generated for this user)
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - validationCode
+              properties:
+                validationCode:
+                  type: string
+                  description: validation code sent via email to activate this user
+      responses:
+        "200":
+          description: User confirmed
+        "400":
+          description: Invalid request. Some fields in the request are not valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "401":
+          description: 'Session id is not valid.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          description: 'ERR-03 => user does not match session id; VAL-04 => Validation code is wrong (after 3 attempts the session will expire automatically); VAL-05 => Validation code is wrong. Registration will be cancelled'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+
+    post:
+      tags: 
+      - Users
+      summary: Sends validation for a password change 
+      description: Confirms the request to change the password by sending the validation code and the new password. BearerToken must contain the token provided in the response of /user (post)
+      operationId: user-validation-post
+      security:
+      - bearerToken: []
+      parameters:
+      - in: query
+        name: user
+        required: true
+        description: Validation for this user (bearerToken must be generated for this user)
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - password
+              - validationCode
+              properties:
+                passsword:
+                  type: string
+                  description: new password
+                validationCode:
+                  type: string
+                  description: validation code sent via email to activate this user
+      responses:
+        "200":
+          description: User password updated
+        "400":
+          description: Invalid request. Some fields in the request are not valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "401":
+          description: 'Session id is not valid.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "403":
+          description: 'ERR-03 => user does not match session id; VAL-04 => Validation code is wrong (after 3 attempts the session will expire automatically); VAL-05 => Validation code is wrong. Registration will be cancelled'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+
+
   /user/session:
     get:
       tags: 
@@ -720,20 +931,6 @@ components:
       description: Id of the item
       schema:
         type: integer
-    cookieUsername:
-      in: cookie
-      name: BOC.user.name
-      required: true
-      description: logged in user name
-      schema:
-        type: string
-    cookieSessionId:
-      in: cookie
-      name: wid
-      required: true
-      description: Session Id for the logged in user
-      schema: 
-        type: string
     searchContinentId:
       in: query
       name: continentId
@@ -1569,6 +1766,11 @@ components:
         properties:
           printedDate:
             type: string
+
+    
+    emailType:
+      type: string
+      pattern: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
 
 
     exception:

@@ -87,7 +87,7 @@ exports.handler = async function(event) {
         }
 
         // Calculate hashed password and compare to the returned one
-        if (body != null) { //&& body.length == 1 && body[0].cre_hashed_pwd === encryptPwd(body[0].cre_salt, password)) {
+        if (body != null && body.length == 1 && body[0].cre_hashed_pwd === encryptPwd(body[0].cre_salt, password)) {
             if (body[0].state === 0) {
                 // User is active
                 log.info(`User ${username} logged in`);
@@ -123,29 +123,10 @@ function response(log, status, bodyJSON) {
     return response;
 }
 
-
 function encryptPwd(salt, pwd) {
     // Calculate hashed password 
     let saltePwd = pwd + salt;
     let hash = crypto.createHmac('sha512', salt);
     hash.update(saltePwd);
     return hash.digest('hex');
-}
-
-
-
-function setUserSession(request, username) {
-    return new Promise((resolve, reject) => {
-        log.debug(`Old session id: ${request.session.id}`);
-        request.session.regenerate((err) => {
-            if (err) {
-                log.error(err.message);
-                reject(err);
-            }
-
-            log.debug(`New session id: ${request.session.id}`);
-            request.session.user = username;
-            resolve();
-        });
-    });
 }

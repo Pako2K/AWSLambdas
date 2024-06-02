@@ -67,7 +67,7 @@ exports.execAPI = async function(event) {
         }
         let validation = VALIDATOR.validate(event.body, requestSchema);
         if (!validation.valid)
-            throw exception(400, "ERR-04", `Invalid Request Body: ${event.body}. Errors: ${validation.errors}`)
+            throw exception(400, "ERR-04", `Invalid Request Body: ${JSON.stringify(event.body)}. Errors: ${validation.errors}`)
     }
 
     // Excecute operation
