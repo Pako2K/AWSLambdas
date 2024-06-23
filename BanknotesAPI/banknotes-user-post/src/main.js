@@ -8,6 +8,7 @@ const fs = require('fs');
 const mailer = require('nodemailer');
 
 const { Logger } = require('logger');
+const { execSync } = require('child_process');
 
 const lambdaClient = new LambdaClient();
 
@@ -24,12 +25,64 @@ const VAL_CODE_LENGTH = 8;
 exports.handler = async function(event) {
     const log = new Logger("user-post", event.correlationId, event.key);
 
+    // Validate credentials (must be the an Administrator)
+    let authHeader = event.headers.Authorization || event.headers.authorization
+
+    if (!authHeader) {
+        return response(log, 400, exceptionJSON("RES-01", "Http header (authorization) not provided"))
+    }
+
+    // Extract username and password
+    // Authorization looks like  "Basic Y2hhcmxlczoxMjM0NQ==". The second part is in base64(user:pwd)
+    let tokenizedAuth = authHeader.split(' ');
+    if (tokenizedAuth.length !== 2 || tokenizedAuth[0] !== "Basic") {
+        return response(log, 400, exceptionJSON("RES-02", "Value of Http header (authorization) is not Basic Authorization"))
+    }
+
+    // Decode string user:pwd
+    let buf = Buffer.from(tokenizedAuth[1], 'base64');
+    let usrPwd = buf.toString();
+
+    let usrPwdArray = usrPwd.split(':'); // split on a ':'
+    if (usrPwdArray.length !== 2) {
+        return response(log, 400, exceptionJSON("RES-03", "Invalid username:password in 'authorization' header"))
+    }
+
+    let adminUser = usrPwdArray[0];
+    let adminPwd = usrPwdArray[1];
+
+    // Check to avoid SQL injection
+    if (adminUser.split(' ').length > 1 || adminPwd.split(' ').length > 1) {
+        return response(log, 400, exceptionJSON("RES-03", "Invalid username:password in 'authorization' header"))
+    }
+
+    const sqlSelectCredentials = `SELECT cre_salt, cre_hashed_pwd FROM cre_credentials WHERE cre_is_admin = 1 AND cre_state = 100 AND cre_username = '${adminUser}'`
+
+    try {
+        let respJSON = await execQuery(log, sqlSelectCredentials, event.correlationId, event.key);
+        let body = respJSON.body;
+
+        if (respJSON.statusCode == undefined || respJSON.statusCode != 200) {
+            return response(log, 500, exceptionJSON("RES-99", body))
+        }
+
+        // Calculate hashed password and compare to the returned one
+        if (body == null || body.length != 1 || body[0].cre_hashed_pwd !== encryptPwd(body[0].cre_salt, adminPwd)) {
+            // Unauthorized
+            return response(log, 401, exceptionJSON("RES-04", `User ${adminUser} not found or wrong password`));
+        }
+    } catch (err) {
+        log.error(`Error: ${err}`);
+        return response(log, 500, exceptionJSON("RES-99", err))
+    }
+
+    // Credentials have been validated. Now the new user can be updated
     let username = event.body.username
     let email = event.body.email
 
     // Check to avoid SQL injection
     if (username.split(' ').length > 1 || email.split(' ').length > 1) {
-        return response(log, 400, exceptionJSON("RES-03", "Invalid username or email"))
+        return response(log, 400, exceptionJSON("RES-10", "Invalid username or email"))
     }
 
     log.info(`Sign up requested by: ${username}`);
@@ -38,31 +91,14 @@ exports.handler = async function(event) {
     const sqlSelectUser = ` SELECT * FROM cre_credentials
                             WHERE cre_username = '${username}'
                             AND cre_mail = '${email}'`;
-
-    const commandParams = {
-        FunctionName: "banknotes-db",
-        InvocationType: "RequestResponse",
-        Payload: JSON.stringify({ sql: sqlSelectUser, correlationId: event.correlationId, key: event.key })
-    };
-
     try {
-        const command = new InvokeCommand(commandParams);
-
-        log.info(`Request sent: ${JSON.stringify(commandParams)}`);
-
-        // Call data provider
-        const result = await lambdaClient.send(command);
-        const respStr = new TextDecoder().decode(result.Payload);
-
-        const respJSON = JSON.parse(respStr);
-
-        log.info(`Response received: ${respJSON.statusCode}`);
+        let respJSON = await execQuery(log, sqlSelectUser, event.correlationId, event.key);
 
         let status = respJSON.statusCode == undefined ? 500 : respJSON.statusCode;
         let body = respJSON.body;
 
         if (status != 200) {
-            return response(log, 500, exceptionJSON("RES-06", body))
+            return response(log, 500, exceptionJSON("RES-99", body))
         }
 
         if (body == null) body = [];
@@ -70,14 +106,11 @@ exports.handler = async function(event) {
 
         if (!body.length) {
             // User does not exists
-            return response(log, 403, exceptionJSON("RES-07", "Username or email not found"))
+            return response(log, 403, exceptionJSON("RES-20", "Username or email not found"))
         } else {
-            if (body[0].cre_state === 0) {
-
-
-            } else {
+            if (body[0].cre_state != 0) {
                 // User found but not activated!
-                return response(log, 403, exceptionJSON("RES-07", "User not activated"))
+                return response(log, 403, exceptionJSON("RES-21", "User not activated"))
             }
         }
     } catch (err) {
@@ -113,23 +146,7 @@ exports.handler = async function(event) {
                                         WHERE cre_username = '${username}'
                                         AND cre_mail = '${email}'`;
 
-        const commandParams = {
-            FunctionName: "banknotes-db",
-            InvocationType: "RequestResponse",
-            Payload: JSON.stringify({ sql: sqlUpdateUserCredential, correlationId: event.correlationId, key: event.key })
-        };
-
-        const command = new InvokeCommand(commandParams);
-
-        log.info(`Update Request sent: ${JSON.stringify(command)}`);
-
-        // Call data provider
-        const result = await lambdaClient.send(command);
-        const respStr = new TextDecoder().decode(result.Payload);
-
-        const respJSON = JSON.parse(respStr);
-
-        log.info(`Response received: ${respJSON.statusCode}`);
+        let respJSON = await execQuery(log, sqlUpdateUserCredential, event.correlationId, event.key)
 
         let status = respJSON.statusCode == undefined ? 500 : respJSON.statusCode;
 
@@ -156,4 +173,35 @@ function response(log, status, bodyJSON) {
     };
     log.info(`Response sent: HTTP ${status}`);
     return response;
+}
+
+
+function encryptPwd(salt, pwd) {
+    // Calculate hashed password 
+    let saltePwd = pwd + salt;
+    let hash = crypto.createHmac('sha512', salt);
+    hash.update(saltePwd);
+    return hash.digest('hex');
+}
+
+async function execQuery(log, sqlStr, correlationId, key) {
+    const commandParams = {
+        FunctionName: "banknotes-db",
+        InvocationType: "RequestResponse",
+        Payload: JSON.stringify({ sql: sqlStr, correlationId: correlationId, key: key })
+    };
+
+    const command = new InvokeCommand(commandParams);
+
+    log.info(`Request sent: ${JSON.stringify(commandParams)}`);
+
+    // Call data provider
+    const result = await lambdaClient.send(command);
+    const respStr = new TextDecoder().decode(result.Payload);
+
+    const respJSON = JSON.parse(respStr);
+
+    log.info(`Response received: ${respJSON.statusCode}`);
+
+    return respJSON;
 }

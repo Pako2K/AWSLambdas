@@ -23,34 +23,17 @@ exports.handler = async function(event) {
     const log = new Logger("user-validation-post", event.correlationId, event.key);
 
     if (!event.queryStrParams && !event.queryStrParams.user)
-        return response(log, 500, exceptionJSON("VAL-01", "Missing parameter in query string"));
-
+        return response(log, 500, exceptionJSON("VAL-99", "Missing parameter in query string"));
 
     // Get username
     let username = event.queryStrParams.user;
 
-    // Check that the validation code is correct
-    const sqlSelectUser = ` SELECT * FROM cre_credentials
-                            WHERE cre_username = '${username}'`;
-
-    const commandParams = {
-        FunctionName: "banknotes-db",
-        InvocationType: "RequestResponse",
-        Payload: JSON.stringify({ sql: sqlSelectUser, correlationId: event.correlationId, key: event.key })
-    };
-
     try {
-        const command = new InvokeCommand(commandParams);
+        // Check that the validation code is correct
+        const sqlSelectUser = ` SELECT * FROM cre_credentials
+                                WHERE cre_username = '${username}'`;
 
-        log.info(`Request sent: ${JSON.stringify(commandParams)}`);
-
-        // Call data provider
-        const result = await lambdaClient.send(command);
-        const respStr = new TextDecoder().decode(result.Payload);
-
-        const respJSON = JSON.parse(respStr);
-
-        log.info(`Response received: ${respJSON.statusCode}`);
+        let respJSON = await execQuery(log, sqlSelectUser, event.correlationId, event.key)
 
         let status = respJSON.statusCode == undefined ? 500 : respJSON.statusCode;
         let body = respJSON.body;
@@ -81,23 +64,7 @@ exports.handler = async function(event) {
                 // Update state
                 const sqlUpdateState = `UPDATE cre_credentials SET cre_state = ${newState} WHERE cre_username = '${username}'`;
 
-                const commandParamsUpdate = {
-                    FunctionName: "banknotes-db",
-                    InvocationType: "RequestResponse",
-                    Payload: JSON.stringify({ sql: sqlUpdateState, correlationId: event.correlationId, key: event.key })
-                };
-
-                const commandUpdate = new InvokeCommand(commandParamsUpdate);
-
-                log.info(`Update request sent: ${JSON.stringify(commandParamsUpdate)}`);
-
-                // Call data provider
-                const result2 = await lambdaClient.send(commandUpdate);
-                const respStr2 = new TextDecoder().decode(result2.Payload);
-
-                const respJSON2 = JSON.parse(respStr2);
-
-                log.info(`Response received: ${respJSON2.statusCode}`);
+                let respJSON2 = await execQuery(log, sqlUpdateState, event.correlationId, event.key)
 
                 let status = respJSON2.statusCode == undefined ? 500 : respJSON2.statusCode;
 
@@ -105,29 +72,13 @@ exports.handler = async function(event) {
                     return response(log, 500, exceptionJSON("VAL-99", respJSON2.body))
                 }
 
-                return response(log, 403, exceptionJSON("VAL-04", `Validation code is wrong. ${3 - newState} attempts left.`))
+                return response(log, 403, exceptionJSON("VAL-10", `Validation code is wrong. ${3 - newState} attempts left.`))
 
             } else {
                 // Cancel password change 
                 const sql = `UPDATE cre_credentials SET cre_state = 0,  cre_validation_code = NULL WHERE cre_username = '${username}'`;
 
-                const commandParams = {
-                    FunctionName: "banknotes-db",
-                    InvocationType: "RequestResponse",
-                    Payload: JSON.stringify({ sql: sql, correlationId: event.correlationId, key: event.key })
-                };
-
-                const command = new InvokeCommand(commandParams);
-
-                log.info(`Update request sent: ${JSON.stringify(commandParams)}`);
-
-                // Call data provider
-                const result = await lambdaClient.send(command);
-                const respStr = new TextDecoder().decode(result.Payload);
-
-                const respJSON = JSON.parse(respStr);
-
-                log.info(`Response received: ${respJSON.statusCode}`);
+                let respJSON3 = await execQuery(log, sql, event.correlationId, event.key)
 
                 let status = respJSON.statusCode == undefined ? 500 : respJSON.statusCode;
 
@@ -135,7 +86,7 @@ exports.handler = async function(event) {
                     return response(log, 500, exceptionJSON("VAL-99", respJSON.body))
                 }
 
-                return response(log, 403, exceptionJSON("VAL-05", `Validation code is wrong. Password change has been cancelled`));
+                return response(log, 403, exceptionJSON("VAL-11", `Validation code is wrong. Password change has been cancelled`));
             }
 
         } else {
@@ -155,28 +106,11 @@ exports.handler = async function(event) {
             const sqlUpdateState = `UPDATE cre_credentials SET cre_salt = '${salt}', cre_hashed_pwd = '${hashedPwd}', cre_state = 0,  cre_validation_code = NULL 
                                     WHERE cre_username = '${username}'`;
 
-            const commandParamsUpdate = {
-                FunctionName: "banknotes-db",
-                InvocationType: "RequestResponse",
-                Payload: JSON.stringify({ sql: sqlUpdateState, correlationId: event.correlationId, key: event.key })
-            };
-
-            const command = new InvokeCommand(commandParamsUpdate);
-
-            log.info(`Update request sent: ${JSON.stringify(commandParamsUpdate)}`);
-
-            // Call data provider
-            const result = await lambdaClient.send(command);
-            const respStr = new TextDecoder().decode(result.Payload);
-
-            const respJSON = JSON.parse(respStr);
-
-            log.info(`Response received: ${respJSON.statusCode}`);
-
-            let status = respJSON.statusCode == undefined ? 500 : respJSON.statusCode;
+            let respJson2 = await execQuery(log, sqlUpdateState, event.correlationId, event.key)
+            let status = respJson2.statusCode == undefined ? 500 : respJson2.statusCode;
 
             if (status != 200) {
-                return response(log, 500, exceptionJSON("VAL-99", respJSON.body))
+                return response(log, 500, exceptionJSON("VAL-99", respJson2.body))
             }
 
             // Send email with change confirmation
@@ -194,12 +128,11 @@ exports.handler = async function(event) {
 
             log.info(`Confirmation mail sent to ${email}. User Name: ${username}. ${mailResult.response}`);
 
-
             return response(log, 200, {})
         }
     } catch (err) {
         log.error(`Error: ${err}`);
-        return response(log, 500, exceptionJSON("VAL-99", err.message || err.exception))
+        return response(log, 500, exceptionJSON("VAL-99", err))
     }
 };
 
@@ -225,4 +158,28 @@ function encryptPwd(salt, pwd) {
     let hash = crypto.createHmac('sha512', salt);
     hash.update(saltePwd);
     return hash.digest('hex');
+}
+
+
+
+async function execQuery(log, sqlStr, correlationId, key) {
+    const commandParams = {
+        FunctionName: "banknotes-db",
+        InvocationType: "RequestResponse",
+        Payload: JSON.stringify({ sql: sqlStr, correlationId: correlationId, key: key })
+    };
+
+    const command = new InvokeCommand(commandParams);
+
+    log.info(`Request sent: ${JSON.stringify(commandParams)}`);
+
+    // Call data provider
+    const result = await lambdaClient.send(command);
+    const respStr = new TextDecoder().decode(result.Payload);
+
+    const respJSON = JSON.parse(respStr);
+
+    log.info(`Response received: ${respJSON.statusCode}`);
+
+    return respJSON;
 }

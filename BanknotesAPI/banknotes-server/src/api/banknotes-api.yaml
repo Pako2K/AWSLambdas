@@ -38,7 +38,9 @@ paths:
       tags: 
       - Users
       summary: Create (register) a new user
-      description: Request to create a new user. Username must be between 3 and 16 alphanumeric characters. Password must be between 8 and 32 characters. The request must be confirmed by providing a validaton code within 5 minutes. See /user/validation
+      description: 'Request to create a new user. Username must be between 3 and 16 alphanumeric characters. 
+        Password must be between 8 and 32 characters. The request must be confirmed by providing a validaton code within 5 minutes. See /user/validation
+        This Operation can only be used with Admin credentials'
       operationId: user-put
       security:
       - basicAuthentication: []
@@ -49,9 +51,13 @@ paths:
             schema:
               type: object
               required:
+              - username
+              - password
               - email
               properties:
                 username:
+                  type: string
+                password:
                   type: string
                 email:
                   $ref: '#/components/schemas/emailType'
@@ -63,30 +69,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/sessionResponse'
         "400":
-          description: Invalid request. Some field in the request is not valid
+          description: 'Invalid request. Some field in the request is not valid. Codes: 
+              REG-01 - Http header (authorization) not provided
+              REG-02 - Value of Http header (authorization) is not Basic Authorization
+              REG-03 - Invalid username:password in "authorization" header
+              REG-10 - Username is too short (less than 3 characters) or too long (more than 16 characters)
+              REG-11 - Password is too short (less than 8 characters) or too long (more than 32 characters)
+              REG-12 - Invalid username
+              REG-20 - Invalid Mail Address'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "401":
+          description: "Invalid credentials. Code: REG-04 - User not found or wrong password"
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/exception'
         "403":
-          description: User or email is already registered
+          description: "User or email is already registered. Code: REG-13"
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/exception'
         "500":
-          description: Internal server error
+          description: "Internal server error. Code: REG-99"
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/exception'
-                
+                 
     post:
       tags: 
       - Users
       summary: Update (change password request) for an existing user
-      description: Request to change the passsword of a user. The request must be confirmed by providing a validaton code within 5 minutes. See /user/validation (post)
+      description: 'Request to change the passsword of a user. The request must be confirmed by providing a validaton code within 5 minutes. See /user/validation (post).
+        This Operation can only be used with Admin credentials'
       operationId: user-post
+      security:
+      - basicAuthentication: []
       requestBody:
         required: true
         content:
@@ -109,7 +131,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/sessionResponse'
         "400":
-          description: Invalid request. Some field in the request is not valid
+          description: 'Invalid request. Some field in the request is not valid. Codes: 
+              RES-01 - Http header (authorization) not provided
+              RES-02 - Value of Http header (authorization) is not Basic Authorization
+              RES-03 - Invalid username:password in "authorization" header
+              RES-10 - Invalid username/email'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/exception'
+        "401":
+          description: "Invalid credentials. Code: RES-04 - User not found or wrong password"
           content:
             application/json:
               schema:
@@ -121,7 +153,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/exception'
         "500":
-          description: Internal server error
+          description: "Internal server error. Code: RES-99"
           content:
             application/json:
               schema:
@@ -133,17 +165,10 @@ paths:
       tags: 
       - Users
       summary: Sends validation for a new user (registration)
-      description: Confirms the request to create a new account by sending the validation code
+      description: Confirms the request to create a new account by sending the validation code. BearerToken must be generated for this user
       operationId: user-validation-put
       security:
       - bearerToken: []
-      parameters:
-      - in: query
-        name: user
-        required: true
-        description: Validation for this user (bearerToken must be generated for this user)
-        schema:
-          type: string
       requestBody:
         required: true
         content:
@@ -160,25 +185,30 @@ paths:
         "200":
           description: User confirmed
         "400":
-          description: Invalid request. Some fields in the request are not valid
+          description: 'Invalid request. 
+            ERR-02 - Value of Http header (authorization) is not valid
+            ERR-04 - Request body is not valid
+            VAL-01 - User not found'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/exception'
         "401":
-          description: 'Session id is not valid.'
+          description: Session id is not valid. ERR-01
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/exception'
         "403":
-          description: 'ERR-03 => user does not match session id; VAL-04 => Validation code is wrong (after 3 attempts the session will expire automatically); VAL-05 => Validation code is wrong. Registration will be cancelled'
+          description: 'Wrong validation code.
+            VAL-10 - Validation code is wrong (after 3 attempts the session will expire automatically)
+            VAL-11 - Validation code is wrong. Registration will be cancelled'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/exception'
         "500":
-          description: Internal server error
+          description: Internal server error.
           content:
             application/json:
               schema:
@@ -192,13 +222,6 @@ paths:
       operationId: user-validation-post
       security:
       - bearerToken: []
-      parameters:
-      - in: query
-        name: user
-        required: true
-        description: Validation for this user (bearerToken must be generated for this user)
-        schema:
-          type: string
       requestBody:
         required: true
         content:
@@ -219,7 +242,9 @@ paths:
         "200":
           description: User password updated
         "400":
-          description: Invalid request. Some fields in the request are not valid
+          description: 'Invalid request. 
+            ERR-04 - Request body is not valid
+            VAL-01 - Password is too short (less than 8 characters) or too long (more than 32 characters)'
           content:
             application/json:
               schema:
@@ -231,7 +256,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/exception'
         "403":
-          description: 'ERR-03 => user does not match session id; VAL-04 => Validation code is wrong (after 3 attempts the session will expire automatically); VAL-05 => Validation code is wrong. Registration will be cancelled'
+          description: 'Wrong validation code.
+            VAL-10 - Validation code is wrong (after 3 attempts the session will expire automatically)
+            VAL-11 - Validation code is wrong. Registration will be cancelled'  
           content:
             application/json:
               schema:
@@ -285,17 +312,10 @@ paths:
       tags: 
       - Items
       summary: Get list of all items in the collection.
-      description: Returns a list of items in the user's collection.
+      description: Returns a list of items in the user's collection. The user is validated and extracted from the bearerToken
       operationId: item-get
       security:
       - bearerToken: []
-      parameters:
-      - in: query
-        name: user
-        required: true
-        description: Retrieve only this user's collection (bearerToken must be generated for this user)
-        schema:
-          type: string
       responses:
         "200":
           description: List of items
@@ -529,17 +549,10 @@ paths:
       tags:
       - Territories
       summary: Get statistics about banknotes in a collection for each territory. 
-      description: Returns statistics about banknotes in a collection
+      description: Returns statistics about banknotes in a collection. The user is validated and extracted from the bearer token
       operationId: territory-stats-get
       security:
       - bearerToken: []
-      parameters:
-      - in: query
-        name: user
-        required: true
-        description: Retrieve the stats for this user's collection
-        schema:
-          type: string
       responses:
         "200":
           description: List of territories with statistics
@@ -652,17 +665,10 @@ paths:
       tags: 
       - Currencies
       summary: Get statistics about banknotes in a collection for each currency. 
-      description: Returns statistics about banknotes in a collection for each currency. 
+      description: Returns statistics about banknotes in a collection for each currency. The user is validated and extracted from the bearer token
       operationId: currency-stats-get
       security:
       - bearerToken: []
-      parameters:
-      - in: query
-        name: user
-        required: true
-        description: Retrieve the stats for this user's collection
-        schema:
-          type: string
       responses:
         "200":
           description: List of currencies with statistics
@@ -735,7 +741,7 @@ paths:
       - Banknotes
       summary: Get statistics about banknotes in a collection for each denomination. 
       description: Returns statistics about banknotes in a collection for each denomination. 
-      operationId: denomination-stats-get
+      operationId: denomination-col-stats-get
       security:
       - bearerToken: []
       parameters:
@@ -810,7 +816,7 @@ paths:
       - Variants
       summary: Get statistics about banknotes in a collection for each year of issue. 
       description: Returns statistics about banknotes in a collection for each year of issue. 
-      operationId: issue-year-stats-get
+      operationId: issue-year-col-stats-get
       security:
       - bearerToken: []
       parameters:

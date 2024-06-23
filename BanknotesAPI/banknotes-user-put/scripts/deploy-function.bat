@@ -1,1 +1,1 @@
-aws lambda update-function-code --function-name banknotes-user-put --zip-file fileb://../target/banknotes-user-put.zip >nul
+aws lambda update-function-code --function-name banknotes-user-put --zip-file fileb://../target/banknotes.zip >nul

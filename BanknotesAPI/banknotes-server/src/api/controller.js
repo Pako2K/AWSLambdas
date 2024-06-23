@@ -34,16 +34,14 @@ exports.execAPI = async function(event) {
                         log.info(`User ${username} authenticated`);
                     } catch (exc) {
                         log.error(`Error: ${JSON.stringify(exc)}`);
-                        throw exception(401, "ERR-11", exc.message);
+                        throw exception(401, "ERR-01", `Inavlid Token: ${exc.message}`);
                     }
 
-                    // Validate username
-                    if (event.queryStringParameters != undefined) {
-                        // Check username against received value in token
-                        if (username != event.queryStringParameters.user)
-                            throw exception(403, "ERR-03", "User does not match");
-                    } else
-                        throw exception(400, "ERR-01", "Missing parameter in query string");
+                    // Add username to the query string
+                    if (event.queryStringParameters)
+                        event.queryStringParameters.user = username
+                    else
+                        event.queryStringParameters = { user: username }
                 } else {
                     throw exception(400, "ERR-02", "Value of Http header (authorization) is not valid");
                 }
@@ -67,24 +65,24 @@ exports.execAPI = async function(event) {
         }
         let validation = VALIDATOR.validate(event.body, requestSchema);
         if (!validation.valid)
-            throw exception(400, "ERR-04", `Invalid Request Body: ${JSON.stringify(event.body)}. Errors: ${validation.errors}`)
+            throw exception(400, "ERR-04", `Invalid Request Body. Errors: ${validation.errors}`)
     }
 
     // Excecute operation
     try {
         const result = await route(operationId, event.headers["x-correlation-id"], event.requestContext.domainName, event.headers, event.queryStringParameters, event.requestContext.http.path, event.body);
         if (!result.body)
-            throw { code: 5002, message: `Internal error. ${JSON.stringify(result)}.` }
+            throw exception(500, "ERR-99", `Internal error. ${JSON.stringify(result)}`)
 
         // Validate only during testing (it is very slow for big messages!)
         if (VALIDATE) {
             let validation = VALIDATOR.validate(result.body, responseSchema);
             if (!validation.valid)
-                throw { code: 5001, message: `Invalid Response: ${JSON.stringify(result.body)}. Errors: ${validation.errors}` }
+                throw exception(500, "ERR-99", `Invalid Response: ${JSON.stringify(result.body)}. Errors: ${validation.errors}`)
         }
         return result;
     } catch (err) {
-        const exc = exception(500, err.code, err.message);
+        const exc = exception(500, "ERR-99", err);
         throw exc;
     }
 }
