@@ -741,7 +741,7 @@ paths:
       - Banknotes
       summary: Get statistics about banknotes in a collection for each denomination. 
       description: Returns statistics about banknotes in a collection for each denomination. 
-      operationId: denomination-col-stats-get
+      operationId: denomination-stats-get
       security:
       - bearerToken: []
       parameters:
@@ -816,7 +816,7 @@ paths:
       - Variants
       summary: Get statistics about banknotes in a collection for each year of issue. 
       description: Returns statistics about banknotes in a collection for each year of issue. 
-      operationId: issue-year-col-stats-get
+      operationId: issue-year-stats-get
       security:
       - bearerToken: []
       parameters:
